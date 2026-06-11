@@ -1,0 +1,1950 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cell Biology Review</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #FFF8F6;
+    --card: #FFFFFF;
+    --pink-soft: #FBDDE6;
+    --pink: #EE9DB8;
+    --pink-deep: #D9789F;
+    --plum: #4A2A3B;
+    --plum-soft: #8C6B7A;
+    --sage: #8FBFA0;
+    --sage-deep: #5E9676;
+    --coral: #E59085;
+    --coral-deep: #CB6457;
+    --cream: #FFF1EC;
+    --gold: #F0C880;
+    --shadow: 0 12px 40px -12px rgba(217, 120, 159, 0.35);
+    --radius: 22px;
+  }
+
+  *{ box-sizing: border-box; margin:0; padding:0; }
+
+  html,body{ height:100%; }
+
+  body{
+    font-family: 'Quicksand', sans-serif;
+    background: linear-gradient(180deg, #FFF8F6 0%, #FFEFF3 50%, #FDF1F4 100%);
+    color: var(--plum);
+    height: 100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  h1,h2,h3,.display{
+    font-family: 'Fraunces', serif;
+  }
+
+  /* ambient floating petals/dots */
+  .ambient{
+    position: fixed;
+    inset:0;
+    pointer-events:none;
+    z-index:0;
+    overflow:hidden;
+  }
+  .petal{
+    position:absolute;
+    border-radius: 50% 0 50% 50%;
+    opacity: 0.35;
+    animation: float-petal linear infinite;
+  }
+  @keyframes float-petal{
+    0%{ transform: translateY(110vh) rotate(0deg); }
+    100%{ transform: translateY(-15vh) rotate(360deg); }
+  }
+  .star{
+    position:absolute;
+    color: var(--gold);
+    opacity:0.5;
+    animation: twinkle 3s ease-in-out infinite;
+  }
+  @keyframes twinkle{
+    0%,100%{ opacity:0.15; transform: scale(0.8); }
+    50%{ opacity:0.6; transform: scale(1.1); }
+  }
+
+  .app{
+    position:relative;
+    z-index:1;
+    width: 100%;
+    max-width: 600px;
+    max-height: 92vh;
+  }
+
+  .card{
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 24px;
+    position: relative;
+    max-height: 92vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: var(--pink-soft) transparent;
+  }
+  .card::-webkit-scrollbar{
+    width: 6px;
+  }
+  .card::-webkit-scrollbar-thumb{
+    background: var(--pink-soft);
+    border-radius: 10px;
+  }
+  .card::-webkit-scrollbar-track{
+    background: transparent;
+  }
+  .card::before{
+    content:"";
+    position:absolute;
+    top:-60px; right:-60px;
+    width:180px; height:180px;
+    background: radial-gradient(circle, var(--pink-soft) 0%, transparent 70%);
+    border-radius:50%;
+    pointer-events:none;
+    z-index:-1;
+  }
+
+  /* ============ SCREEN: SPLASH ============ */
+  .splash .eyebrow{
+    font-size: 0.78rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--pink-deep);
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+  .splash h1{
+    font-size: 2.1rem;
+    font-weight: 600;
+    line-height: 1.25;
+    margin-bottom: 8px;
+    color: var(--plum);
+  }
+  .splash p.sub{
+    color: var(--plum-soft);
+    font-size: 0.98rem;
+    margin-bottom: 28px;
+    line-height: 1.6;
+  }
+
+  .topic-list{
+    display:flex;
+    flex-direction:column;
+    gap: 10px;
+    margin-bottom: 22px;
+  }
+  .topic-item{
+    display:flex;
+    align-items:center;
+    gap: 14px;
+    padding: 14px 16px;
+    border: 1.5px solid var(--pink-soft);
+    border-radius: 14px;
+    cursor:pointer;
+    transition: all 0.18s ease;
+    background: var(--cream);
+  }
+  .topic-item:hover{
+    border-color: var(--pink);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px -8px rgba(217,120,159,0.4);
+  }
+  .topic-item.active{
+    border-color: var(--pink-deep);
+    background: linear-gradient(135deg, #FFF0F4 0%, #FCE3EC 100%);
+  }
+  .topic-checkbox{
+    width: 22px; height: 22px;
+    border-radius: 7px;
+    border: 2px solid var(--pink);
+    flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    transition: all 0.15s ease;
+    background: #fff;
+  }
+  .topic-item.active .topic-checkbox{
+    background: var(--pink-deep);
+    border-color: var(--pink-deep);
+  }
+  .topic-checkbox svg{
+    width:13px; height:13px;
+    opacity:0;
+    transform: scale(0.5);
+    transition: all 0.15s ease;
+  }
+  .topic-item.active .topic-checkbox svg{
+    opacity:1;
+    transform: scale(1);
+  }
+  .topic-info{ flex:1; }
+  .topic-name{
+    font-weight: 600;
+    font-size: 0.98rem;
+    color: var(--plum);
+  }
+  .topic-count{
+    font-size: 0.78rem;
+    color: var(--plum-soft);
+    margin-top: 2px;
+  }
+
+  .select-all-row{
+    display:flex;
+    justify-content:flex-end;
+    margin-bottom: 14px;
+  }
+  .select-all-btn{
+    font-family:'Quicksand', sans-serif;
+    font-weight:600;
+    font-size: 0.85rem;
+    color: var(--pink-deep);
+    background: none;
+    border: none;
+    cursor:pointer;
+    padding: 6px 10px;
+    border-radius: 8px;
+    transition: background 0.15s ease;
+  }
+  .select-all-btn:hover{
+    background: var(--pink-soft);
+  }
+
+  .btn-primary{
+    width:100%;
+    padding: 16px;
+    border-radius: 16px;
+    border: none;
+    background: linear-gradient(135deg, var(--pink) 0%, var(--pink-deep) 100%);
+    color: #fff;
+    font-family:'Quicksand', sans-serif;
+    font-weight: 700;
+    font-size: 1.02rem;
+    cursor:pointer;
+    transition: all 0.18s ease;
+    box-shadow: 0 8px 22px -8px rgba(217,120,159,0.6);
+    letter-spacing: 0.01em;
+  }
+  .btn-primary:hover:not(:disabled){
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px -8px rgba(217,120,159,0.7);
+  }
+  .btn-primary:disabled{
+    background: #F0DDE3;
+    color: #C9AEB8;
+    cursor: not-allowed;
+    box-shadow:none;
+  }
+  .hint-msg{
+    text-align:center;
+    font-size: 0.82rem;
+    color: var(--coral-deep);
+    margin-top: 10px;
+    min-height: 18px;
+    font-weight: 600;
+  }
+
+  /* ============ SCREEN: QUIZ ============ */
+  .quiz-header{
+    display:flex;
+    justify-content: space-between;
+    align-items:center;
+    margin-bottom: 18px;
+    gap: 16px;
+  }
+  .progress-info{
+    font-size: 0.85rem;
+    color: var(--plum-soft);
+    font-weight: 600;
+  }
+  .score-pill{
+    background: var(--pink-soft);
+    color: var(--pink-deep);
+    font-weight: 700;
+    font-size: 0.85rem;
+    padding: 6px 14px;
+    border-radius: 20px;
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .progress-track{
+    width:100%;
+    height: 10px;
+    background: var(--cream);
+    border-radius: 10px;
+    overflow:hidden;
+    margin-bottom: 26px;
+    position:relative;
+  }
+  .progress-fill{
+    height:100%;
+    background: linear-gradient(90deg, var(--pink) 0%, var(--gold) 100%);
+    border-radius: 10px;
+    transition: width 0.4s cubic-bezier(.4,0,.2,1);
+  }
+
+  .topic-tag{
+    display:inline-block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--pink-deep);
+    background: var(--pink-soft);
+    padding: 5px 12px;
+    border-radius: 20px;
+    margin-bottom: 16px;
+  }
+
+  .question-text{
+    font-size: 1.18rem;
+    line-height: 1.55;
+    color: var(--plum);
+    margin-bottom: 24px;
+    font-weight: 500;
+  }
+  .question-text .q-label{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+  }
+
+  .choices{
+    display:flex;
+    flex-direction:column;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+  .choice{
+    text-align:left;
+    padding: 15px 18px;
+    border-radius: 14px;
+    border: 1.5px solid var(--pink-soft);
+    background: #fff;
+    font-family:'Quicksand', sans-serif;
+    font-size: 0.98rem;
+    color: var(--plum);
+    cursor:pointer;
+    transition: all 0.15s ease;
+    display:flex;
+    align-items:center;
+    gap: 12px;
+  }
+  .choice:hover:not(.correct):not(.wrong):not(.disabled){
+    border-color: var(--pink);
+    background: var(--cream);
+    transform: translateX(2px);
+  }
+  .choice .letter{
+    width: 22px; height:22px;
+    border-radius: 50%;
+    background: var(--pink-soft);
+    color: var(--pink-deep);
+    font-weight:700;
+    font-size:0.72rem;
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+    transition: all 0.15s ease;
+  }
+  .choice.correct{
+    border-color: var(--sage-deep);
+    background: #F0F8F2;
+    animation: pop 0.35s ease;
+  }
+  .choice.correct .letter{
+    background: var(--sage-deep);
+    color: #fff;
+  }
+  .choice.wrong{
+    border-color: var(--coral-deep);
+    background: #FDF1EE;
+    animation: shake 0.4s ease;
+  }
+  .choice.wrong .letter{
+    background: var(--coral-deep);
+    color: #fff;
+  }
+  .choice.disabled{
+    cursor: default;
+  }
+  @keyframes pop{
+    0%{ transform: scale(1); }
+    40%{ transform: scale(1.02); }
+    100%{ transform: scale(1); }
+  }
+  @keyframes shake{
+    0%,100%{ transform: translateX(0); }
+    20%{ transform: translateX(-6px); }
+    40%{ transform: translateX(6px); }
+    60%{ transform: translateX(-4px); }
+    80%{ transform: translateX(4px); }
+  }
+
+  .feedback-box{
+    margin-top: 18px;
+    padding: 18px 20px;
+    border-radius: 14px;
+    background: var(--cream);
+    border-left: 4px solid var(--coral-deep);
+    font-size: 0.92rem;
+    line-height: 1.65;
+    color: var(--plum);
+    animation: slide-in 0.3s ease;
+    display:none;
+  }
+  .feedback-box.show{ display:block; }
+  .feedback-box.correct-fb{
+    border-left-color: var(--sage-deep);
+    background: #F0F8F2;
+  }
+  .feedback-title{
+    font-weight: 700;
+    margin-bottom: 8px;
+    font-family:'Fraunces', serif;
+    font-size: 1rem;
+  }
+  .feedback-box ul{
+    margin: 8px 0 0 20px;
+  }
+  .feedback-box li{
+    margin-bottom: 4px;
+  }
+  @keyframes slide-in{
+    from{ opacity:0; transform: translateY(-8px); }
+    to{ opacity:1; transform: translateY(0); }
+  }
+
+  .next-btn-row{
+    margin-top: 20px;
+    display:none;
+  }
+  .next-btn-row.show{ display:block; }
+
+  /* ============ SCREEN: RESULTS ============ */
+  .results-hero{
+    text-align:center;
+    margin-bottom: 28px;
+  }
+  .results-score{
+    font-family:'Fraunces', serif;
+    font-size: 3.4rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--pink-deep) 0%, var(--gold) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height:1;
+  }
+  .results-score-label{
+    color: var(--plum-soft);
+    font-size: 0.92rem;
+    margin-top: 8px;
+    font-weight: 600;
+  }
+  .results-message{
+    margin-top: 14px;
+    font-size: 1rem;
+    color: var(--plum);
+    line-height: 1.6;
+  }
+
+  .section-results{
+    margin-top: 28px;
+  }
+  .section-results h3{
+    font-size: 1.1rem;
+    margin-bottom: 14px;
+    color: var(--plum);
+    font-weight: 600;
+  }
+  .topic-bar-row{
+    margin-bottom: 14px;
+  }
+  .topic-bar-label{
+    display:flex;
+    justify-content: space-between;
+    font-size: 0.88rem;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: var(--plum);
+  }
+  .topic-bar-pct{
+    color: var(--pink-deep);
+  }
+  .topic-bar-track{
+    width:100%;
+    height: 9px;
+    background: var(--cream);
+    border-radius: 8px;
+    overflow:hidden;
+  }
+  .topic-bar-fill{
+    height:100%;
+    border-radius:8px;
+    transition: width 0.6s cubic-bezier(.4,0,.2,1);
+  }
+  .fill-strong{ background: linear-gradient(90deg, var(--sage), var(--sage-deep)); }
+  .fill-mid{ background: linear-gradient(90deg, var(--gold), #E5A85C); }
+  .fill-weak{ background: linear-gradient(90deg, var(--coral), var(--coral-deep)); }
+
+  .analysis-box{
+    margin-top: 26px;
+    padding: 20px;
+    border-radius: 16px;
+    background: var(--cream);
+  }
+  .analysis-box h3{
+    font-size: 1.05rem;
+    margin-bottom: 10px;
+    color: var(--plum);
+  }
+  .analysis-box p{
+    font-size: 0.92rem;
+    line-height: 1.7;
+    color: var(--plum);
+    margin-bottom: 8px;
+  }
+  .analysis-box p:last-child{ margin-bottom:0; }
+  .tag-good{ color: var(--sage-deep); font-weight:700; }
+  .tag-bad{ color: var(--coral-deep); font-weight:700; }
+
+  .review-section{
+    margin-top: 28px;
+  }
+  .review-section h3{
+    font-size: 1.1rem;
+    margin-bottom: 14px;
+    color: var(--plum);
+    font-weight:600;
+  }
+  .review-item{
+    padding: 14px 16px;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    border: 1.5px solid var(--pink-soft);
+    background:#fff;
+  }
+  .review-item.was-wrong{
+    border-color: var(--coral-deep);
+    background: #FDF6F5;
+  }
+  .review-item.was-right{
+    border-color: var(--sage-deep);
+    background: #F6FBF7;
+  }
+  .review-q-num{
+    font-size: 0.75rem;
+    font-weight:700;
+    color: var(--plum-soft);
+    text-transform:uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 4px;
+  }
+  .review-q-text{
+    font-size: 0.92rem;
+    font-weight:600;
+    color: var(--plum);
+    margin-bottom: 6px;
+  }
+  .review-answer-line{
+    font-size: 0.85rem;
+    line-height:1.6;
+  }
+  .review-answer-line .lab{
+    font-weight:700;
+  }
+  .icon-correct{ color: var(--sage-deep); }
+  .icon-wrong{ color: var(--coral-deep); }
+
+  .restart-row{
+    margin-top: 28px;
+    display:flex;
+    gap: 12px;
+  }
+  .btn-secondary{
+    flex:1;
+    padding: 14px;
+    border-radius: 14px;
+    border: 1.5px solid var(--pink);
+    background: #fff;
+    color: var(--pink-deep);
+    font-family:'Quicksand', sans-serif;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor:pointer;
+    transition: all 0.15s ease;
+  }
+  .btn-secondary:hover{
+    background: var(--pink-soft);
+  }
+
+  .screen{ display:none; }
+  .screen.active{ display:block; animation: fade-in 0.35s ease; }
+  @keyframes fade-in{
+    from{ opacity:0; transform: translateY(6px); }
+    to{ opacity:1; transform:translateY(0); }
+  }
+
+  @media (max-width: 480px){
+    .card{ padding: 24px; }
+    .splash h1{ font-size: 1.65rem; }
+    .results-score{ font-size: 2.6rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="ambient" id="ambient"></div>
+
+<div class="app">
+  <div class="card">
+
+    <!-- SPLASH SCREEN -->
+    <div class="screen active splash" id="screen-splash">
+      <div class="eyebrow">Cell Biology · Practice Quiz</div>
+      <h1>Let's go through the basics, one cell at a time 🌸</h1>
+      <p class="sub">Pick the topics you'd like to review. Questions and choices reshuffle and reword every time, so you can keep practicing without memorizing the order.</p>
+
+      <div class="select-all-row">
+        <button class="select-all-btn" id="selectAllBtn">Select all</button>
+      </div>
+
+      <div class="topic-list" id="topicList"></div>
+
+      <button class="btn-primary" id="startBtn" disabled>Start quiz</button>
+      <div class="hint-msg" id="hintMsg"></div>
+    </div>
+
+    <!-- QUIZ SCREEN -->
+    <div class="screen" id="screen-quiz">
+      <div class="quiz-header">
+        <div class="progress-info" id="progressInfo">Question 1 of 10</div>
+        <div class="score-pill" id="scorePill">✓ 0 correct</div>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill" style="width:0%"></div>
+      </div>
+
+      <div class="topic-tag" id="topicTag">Cell Theory</div>
+      <div class="question-text" id="questionText"></div>
+
+      <div class="choices" id="choicesList"></div>
+
+      <div class="feedback-box" id="feedbackBox">
+        <div class="feedback-title" id="feedbackTitle"></div>
+        <div id="feedbackBody"></div>
+      </div>
+
+      <div class="next-btn-row" id="nextBtnRow">
+        <button class="btn-primary" id="nextBtn">Next question →</button>
+      </div>
+    </div>
+
+    <!-- RESULTS SCREEN -->
+    <div class="screen" id="screen-results">
+      <div class="results-hero">
+        <div class="results-score" id="resultsScore">0/0</div>
+        <div class="results-score-label" id="resultsScoreLabel">questions correct</div>
+        <div class="results-message" id="resultsMessage"></div>
+      </div>
+
+      <div class="section-results">
+        <h3>Performance by topic</h3>
+        <div id="topicBars"></div>
+      </div>
+
+      <div class="analysis-box">
+        <h3>What this tells us</h3>
+        <div id="analysisBody"></div>
+      </div>
+
+      <div class="review-section">
+        <h3>Full answer review</h3>
+        <div id="reviewList"></div>
+      </div>
+
+      <div class="restart-row">
+        <button class="btn-secondary" id="retakeSameBtn">Retake same topics</button>
+        <button class="btn-secondary" id="retakeNewBtn">Choose new topics</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Sound effects (tiny synthesized tones via Web Audio, no external files needed) -->
+<script>
+/* ============================================================
+   SOUND EFFECTS — synthesized via Web Audio API (no assets needed)
+============================================================ */
+let audioCtx;
+function getCtx(){
+  if(!audioCtx){
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  return audioCtx;
+}
+function playTone(freq, start, duration, type='sine', gainVal=0.18){
+  const ctx = getCtx();
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = type;
+  osc.frequency.setValueAtTime(freq, ctx.currentTime + start);
+  gain.gain.setValueAtTime(0, ctx.currentTime + start);
+  gain.gain.linearRampToValueAtTime(gainVal, ctx.currentTime + start + 0.01);
+  gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + start + duration);
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  osc.start(ctx.currentTime + start);
+  osc.stop(ctx.currentTime + start + duration);
+}
+function playCorrectSound(){
+  // bright ascending arpeggio
+  playTone(523.25, 0,    0.18, 'sine', 0.30);   // C5
+  playTone(659.25, 0.08, 0.18, 'sine', 0.30);   // E5
+  playTone(783.99, 0.16, 0.28, 'sine', 0.32);   // G5
+}
+function playWrongSound(){
+  // soft descending muted tone, gentle not harsh
+  playTone(311.13, 0,    0.22, 'sine', 0.28);   // Eb4
+  playTone(233.08, 0.10, 0.30, 'sine', 0.24);   // Bb3
+}
+function playClickSound(){
+  playTone(880, 0, 0.06, 'sine', 0.12);
+}
+function playCompleteSound(){
+  playTone(523.25, 0,    0.18, 'sine', 0.28);
+  playTone(659.25, 0.12, 0.18, 'sine', 0.28);
+  playTone(783.99, 0.24, 0.18, 'sine', 0.28);
+  playTone(1046.5, 0.36, 0.4,  'sine', 0.32);
+}
+</script>
+
+<script>
+/* ============================================================
+   AMBIENT DECORATION — floating petals + twinkling stars
+============================================================ */
+(function(){
+  const ambient = document.getElementById('ambient');
+  const colors = ['#FBDDE6','#F6C6D6','#F0C880','#FCE7EC'];
+  for(let i=0;i<14;i++){
+    const p = document.createElement('div');
+    p.className = 'petal';
+    const size = 10 + Math.random()*22;
+    p.style.width = size+'px';
+    p.style.height = size+'px';
+    p.style.left = (Math.random()*100)+'vw';
+    p.style.background = colors[Math.floor(Math.random()*colors.length)];
+    p.style.animationDuration = (18 + Math.random()*22)+'s';
+    p.style.animationDelay = (Math.random()*-30)+'s';
+    ambient.appendChild(p);
+  }
+  for(let i=0;i<10;i++){
+    const s = document.createElement('div');
+    s.className = 'star';
+    s.style.left = (Math.random()*100)+'vw';
+    s.style.top = (Math.random()*100)+'vh';
+    s.style.fontSize = (10+Math.random()*14)+'px';
+    s.style.animationDelay = (Math.random()*-3)+'s';
+    s.textContent = '✦';
+    ambient.appendChild(s);
+  }
+})();
+</script>
+
+<script>
+/* ============================================================
+   QUESTION BANK
+   Each question has:
+   - topic: which section it belongs to
+   - templates: array of alternate phrasings of the stem (randomly picked each time)
+   - choiceSets: array of alternate phrasings of the {correct, distractors} set
+     (randomly picked each time, paired index-aligned with templates is NOT required —
+      we pick template and choiceSet independently for max variety)
+   - explanation: detailed wrong-answer explanation (HTML allowed, use <ul><li>)
+============================================================ */
+
+const QUESTION_BANK = {
+
+  "Cell Theory": [
+    {
+      templates: [
+        "Who first introduced the term <b>\"cell\"</b> after observing the structure of cork under a microscope?",
+        "Which scientist coined the word <b>\"cell\"</b> when he examined thin slices of cork tissue and noticed they resembled tiny chambers?",
+        "The term <b>\"cell\"</b> was first used by which scientist, based on what he saw while studying cork under early microscopes?"
+      ],
+      choiceSets: [
+        { correct: "Robert Hooke", distractors: ["Antonie van Leeuwenhoek", "Matthias Schleiden", "Theodor Schwann"] },
+        { correct: "Robert Hooke, in 1665", distractors: ["Antonie van Leeuwenhoek, in 1674", "Matthias Schleiden, in 1838", "Robert Brown, in 1833"] }
+      ],
+      explanation: `
+        <ul>
+          <li><b>Robert Hooke</b> examined cork tissue in 1665 and described the empty box-like compartments he saw, naming them "cells" because they reminded him of the small rooms (cells) occupied by monks.</li>
+          <li>He did not see living contents — just the empty cell walls of dead cork tissue.</li>
+          <li><b>Leeuwenhoek</b> came later (1670s) and was the first to observe living cells, like blood cells and microorganisms ("animalcules").</li>
+          <li><b>Schleiden and Schwann</b> are credited with formally proposing cell theory in 1838–1839, almost 200 years after Hooke's observation.</li>
+        </ul>
+      `
+    },
+    {
+      templates: [
+        "Which two scientists are credited with formally proposing <b>cell theory</b> in the late 1830s, stating that cells are the basic unit of all living things?",
+        "Cell theory — the idea that all plants and animals are composed of cells — was formally proposed in 1838–1839 by which pair of scientists?",
+        "Which two German scientists stated that cells are the \"elementary particles\" of both plants and animals, unifying botany and zoology under one framework?"
+      ],
+      choiceSets: [
+        { correct: "Matthias Schleiden and Theodor Schwann", distractors: ["Robert Hooke and Robert Brown", "Antonie van Leeuwenhoek and Robert Hooke", "Robert Brown and Theodor Schwann"] },
+        { correct: "Theodor Schwann and Matthias Jakob Schleiden", distractors: ["Robert Brown and Robert Hooke", "Antonie van Leeuwenhoek and Matthias Schleiden", "Ernst Abbe and Robert Hooke"] }
+      ],
+      explanation: `
+        <ul>
+          <li><b>Matthias Schleiden</b> (a botanist) studied plant tissue and concluded all plant tissues are made of cells.</li>
+          <li><b>Theodor Schwann</b> (a physiologist and Schleiden's friend) extended this idea to animal tissues.</li>
+          <li>Together in 1838–1839, they proposed that cells are the basic structural units of <i>all</i> living organisms — both unicellular and multicellular.</li>
+          <li><b>Robert Hooke</b> only named the cell (1665) but did not propose a unifying theory. <b>Robert Brown</b> identified the nucleus (1833), a separate contribution.</li>
+        </ul>
+      `
+    },
+    {
+      templates: [
+        "What structure did <b>Robert Brown</b> identify in 1833 as a constant component of plant cells, a discovery that helped pave the way for cell theory?",
+        "In 1833, which cellular structure was first observed and described as a regular feature of plant cells by Scottish botanist Robert Brown?",
+        "Robert Brown's 1833 observation of a constant structure in plant cells — later named by him in 1831 — refers to which organelle?"
+      ],
+      choiceSets: [
+        { correct: "The nucleus", distractors: ["The cell wall", "The chloroplast", "The mitochondrion"] },
+        { correct: "The nucleus", distractors: ["The vacuole", "The Golgi apparatus", "Protoplasm"] }
+      ],
+      explanation: `
+        <ul>
+          <li><b>Robert Brown</b> observed the <b>nucleus</b> as a constant component of plant cells in 1833, and he is credited with naming it.</li>
+          <li>This was one of three critical discoveries in the 1830s (alongside the recognition of the nucleus in animal cells, and the discovery of "protoplasm") that led directly to the formulation of cell theory.</li>
+          <li>Before this, cells were thought of as empty pores in plant tissue — Brown's discovery showed they contained consistent internal structures.</li>
+        </ul>
+      `
+    },
+    {
+      templates: [
+        "What invention in the 16th century directly enabled the discovery and study of cells, sparking interest in the \"invisible world\"?",
+        "Which technological development was the key turning point that allowed scientists to begin observing cells for the first time?",
+        "The history of cell theory really begins with the invention of which instrument in the 16th century?"
+      ],
+      choiceSets: [
+        { correct: "The microscope", distractors: ["The telescope", "The centrifuge", "The spectroscope"] },
+        { correct: "The microscope", distractors: ["The barometer", "The X-ray machine", "The electron beam imager"] }
+      ],
+      explanation: `
+        <ul>
+          <li>The <b>microscope</b>, invented in the 16th century, was the decisive event that allowed direct observation of cells for the first time.</li>
+          <li>Before microscopes, all theories about the basic units of life were speculation — "early prediction and speculation about the nature of the cell were generally unsuccessful."</li>
+          <li>It took nearly 200 more years after the invention of the microscope before cell theory was formally proposed (1838), due to limited lens quality and persistent older ideas about what counted as a "fundamental living unit."</li>
+        </ul>
+      `
+    },
+    {
+      templates: [
+        "Antonie van Leeuwenhoek's microscopic observations in the 1670s led to the discovery of which previously unseen group of organisms?",
+        "What did Antonie van Leeuwenhoek discover when he began observing freshwater samples with his hand-made single-lens microscopes starting in 1673–1674?",
+        "Leeuwenhoek's pioneering microscopy work in the 1670s revealed an entire world of what he called \"animalcules\" — what does this term refer to?"
+      ],
+      choiceSets: [
+        { correct: "Unicellular microorganisms (e.g., bacteria, protists)", distractors: ["Plant cell walls", "Mitochondria inside muscle cells", "Chromosomes during cell division"] },
+        { correct: "Single-celled living organisms, including blood cells and microbes", distractors: ["The structure of the cell nucleus", "Photosynthetic pigments in chloroplasts", "The process of mitosis"] }
+      ],
+      explanation: `
+        <ul>
+          <li>Leeuwenhoek discovered <b>unicellular organisms</b> — what he called "animalcules" — including bacteria, protists, blood cells, and spermatozoa.</li>
+          <li>This greatly expanded the known variety of living things, but at the time it did not lead to insight into the basic <i>uniformity</i> of all life (i.e., it didn't directly produce cell theory).</li>
+          <li>Notably, Leeuwenhoek observed these organisms swarming but failed to observe them dividing, which actually reinforced the (incorrect) idea that they arose spontaneously.</li>
+          <li>The unifying idea — that cells are the basic unit of <i>all</i> life — came later, from Schleiden and Schwann (1838–1839).</li>
+        </ul>
+      `
+    }
+  ],
+
+  "Microscopes": [
+    {
+      templates: [
+        "Which type of microscope uses a beam of electrons rather than light, and can achieve magnifications of over 1,000,000×?",
+        "A magnifying power exceeding 1,000,000× is characteristic of which type of microscope, which forms images of thin specimens in a near vacuum?",
+        "Which microscope type uses electron beams instead of glass lenses and light, allowing it to image extremely thin sectioned specimens at extremely high magnification?"
+      ],
+      choiceSets: [
+        { correct: "Transmission electron microscope (TEM)", distractors: ["Compound light microscope", "Scanning electron microscope (SEM)", "Simple microscope (loupe)"] },
+        { correct: "The transmission electron microscope (TEM)", distractors: ["The scanning tunneling microscope (STM)", "The phase-contrast microscope", "The simple magnifying glass"] }
+      ],
+      explanation: `
+        <ul>
+          <li>The <b>transmission electron microscope (TEM)</b> has magnifying powers of more than 1,000,000× and forms images of thin sectioned specimens in a near vacuum.</li>
+          <li>The <b>scanning electron microscope (SEM)</b> usually has a <i>lower</i> resolution than the TEM but is useful for imaging solid surfaces and relief/contour, which a TEM cannot do.</li>
+          <li>A <b>compound light microscope</b> can magnify up to about 2,000× — vastly less than a TEM.</li>
+          <li>A <b>simple microscope</b> (single lens, like a magnifying glass) can magnify up to about 300×.</li>
+        </ul>
+      `
+    },
+    {
+      templates: [
+        "What does \"resolution\" refer to when describing the capability of a microscope?",
+        "In microscopy, the term \"resolution\" specifically describes which property of the instrument?",
+        "Which of the following best defines the resolution of a microscope?"
+      ],
+      choiceSets: [
+        { correct: "The smallest detail of an object that can still be observed, usually measured in micrometres", distractors: ["The total number of times an object appears enlarged", "The amount of light the lens can let through", "The distance between the eyepiece and the objective lens"] },
+        { correct: "A measure of the smallest distinguishable detail of a specimen, expressed in linear units like micrometres", distractors: ["The ratio describing how many times larger the image appears compared to the object", "The maximum depth of field a lens can achieve", "The speed at which an image can be captured digitally"] }
+      ],
+      explanation: `
+        <ul>
+          <li><b>Resolution</b> is the measure of the smallest detail of an object that can still be observed — it's expressed in linear units, usually <b>micrometres (μm)</b>.</li>
+          <li><b>Magnification</b>, by contrast, is a dimensionless ratio expressing how many times larger an object appears (e.g., 10×) — this is a different concept from resolution.</li>
+          <li>For reference: a simple (single-lens) microscope can resolve below 1 μm, while a compound microscope can resolve down to about 0.2 μm.</li>
+          <li>A microscope can have high magnification but poor resolution — magnifying a blurry image just makes a bigger blur.</li>
+        </ul>
+      `
+    },
+    {
+      templates: [
+        "A scanning electron microscope (SEM) is especially useful for which of the following, compared to a transmission electron microscope (TEM)?",
+        "What is a key advantage of an SEM over a TEM, even though the SEM typically has lower resolution?",
+        "Why might a researcher choose an SEM instead of a TEM despite the SEM's generally lower resolving power?"
+      ],
+      choiceSets: [
+        { correct: "It can show solid surfaces and contours/relief in a way the TEM cannot", distractors: ["It can magnify specimens over 1,000,000×", "It requires the specimen to be sliced into extremely thin sections", "It can only be used on living, moving cells"] },
+        { correct: "It produces a reflected image of a contoured, solid specimen's surface", distractors: ["It achieves higher magnification than any electron microscope", "It works without needing any vacuum environment", "It eliminates the need for any image processing"] }
+      ],
+      explanation: `
+        <ul>
+          <li>An <b>SEM</b> creates a <i>reflected</i> image of the relief/contour of a solid specimen — it's good for showing surface detail.</li>
+          <li>A <b>TEM</b> requires very thin sections (the beam passes <i>through</i> the specimen) and achieves much higher magnification (over 1,000,000×) but cannot show surface topology the way an SEM can.</li>
+          <li>So the trade-off is: TEM = higher magnification, internal detail of thin sections; SEM = lower resolution, but reveals 3D-like surface structure.</li>
+        </ul>
+      `
+    }
+  ],
+
+  "Cell Organelles & Functions": [
+    {
+      templates: [
+        "Which organelle is described as the \"powerhouse of the cell\" because it produces the cell's main energy-carrying molecule?",
+        "ATP (adenosine triphosphate) is mainly produced by which double-membrane-bound organelle, often nicknamed the cell's powerhouse?",
+        "Aerobic respiration, which converts glucose into usable cellular energy (ATP), takes place primarily in which organelle?"
+      ],
+      choiceSets: [
+        { correct: "Mitochondria", distractors: ["Ribosomes", "Golgi apparatus", "Lysosomes"] },
+        { correct: "The mitochondrion", distractors: ["The smooth endoplasmic reticulum", "The chloroplast", "The peroxisome"] }
+      ],
+      explanation: `
+        <ul>
+          <li><b>Mitochondria</b> are double membrane-bound, sausage-shaped organelles that are the main site of <b>aerobic respiration</b>, converting glucose into ATP.</li>
+          <li>The inner membrane folds into <b>cristae</b>, increasing surface area for energy production; the inner compartment is called the <b>matrix</b>.</li>
+          <li>Mitochondria have their own circular DNA, RNA, and 70S ribosomes — a clue to their evolutionary origin as once-independent organisms.</li>
+          <li><b>Ribosomes</b> make proteins (not ATP); the <b>Golgi apparatus</b> packages and ships proteins/lipids; <b>lysosomes</b> digest waste.</li>
+        </ul>
+      `
+    },
+    {
+      templates: [
+        "Which type of endoplasmic reticulum is studded with ribosomes and is primarily involved in protein manufacturing?",
+        "Protein synthesis on the endoplasmic reticulum happens mainly on which type of ER, which appears \"rough\" under the microscope due to attached ribosomes?",
+        "If a cell needs to manufacture large amounts of secreted proteins, which organelle component would you expect to be especially abundant?"
+      ],
+      choiceSets: [
+        { correct: "Rough endoplasmic reticulum (RER)", distractors: ["Smooth endoplasmic reticulum (SER)", "Golgi apparatus", "Peroxisomes"] },
+        { correct: "Rough endoplasmic reticulum", distractors: ["Smooth endoplasmic reticulum", "The nucleolus alone", "Lysosomes"] }
+      ],
+      explanation: `
+        <ul>
+          <li>The <b>rough endoplasmic reticulum (RER)</b> is composed of cisternae, tubules, and vesicles studded with ribosomes, and is mainly involved in <b>protein manufacture</b>.</li>
+          <li>The <b>smooth endoplasmic reticulum (SER)</b> lacks ribosomes and instead functions in producing <b>lipids and steroids</b>, and in <b>detoxifying</b> the cell.</li>
+          <li>Both types of ER form a network of membranous canals that act as a transport system within the cell.</li>
+        </ul>
+      `
+    },
+    {
+      templates: [
+        "Lysosomes are sometimes nicknamed \"suicidal bags\" — what is the reasoning behind this nickname?",
+        "Why are lysosomes commonly referred to as the \"suicide bags\" of the cell?",
+        "What function of lysosomes explains why they are given the dramatic nickname \"suicidal bags\"?"
+      ],
+      choiceSets: [
+        { correct: "They contain digestive enzymes capable of breaking down wastes, and dead or damaged cells/cell parts", distractors: ["They release toxins that kill neighboring cells during infection", "They trigger the cell's nucleus to self-destruct during mitosis errors", "They store excess sodium until the cell bursts"] },
+        { correct: "They're filled with enzymes that can digest the cell's own components if released, including waste and damaged structures", distractors: ["They produce poison that the cell secretes to defend itself", "They cause the cell membrane to dissolve when nutrients run low", "They actively pump the cell toward apoptosis using ATP"] }
+      ],
+      explanation: `
+        <ul>
+          <li><b>Lysosomes</b> are tiny, single membrane-bound organelles filled with <b>digestive enzymes</b>.</li>
+          <li>Their job is to digest and remove wastes, and break down dead or damaged cells/cell components.</li>
+          <li>The "suicidal bags" nickname comes from the fact that if a lysosome's membrane ruptures, the enzymes inside can digest the <i>cell itself</i> — essentially causing the cell to "self-digest."</li>
+        </ul>
+      `
+    },
+    {
+      templates: [
+        "What is the main function of the Golgi apparatus (Golgi complex) within the cell?",
+        "A membrane-bound organelle composed of stacked, flattened sacs called cisternae, which modifies, packages, and ships proteins and lipids to their destinations, is known as what?",
+        "If a protein has just been synthesized and needs to be modified and addressed for delivery to its correct location, which organelle handles this step?"
+      ],
+      choiceSets: [
+        { correct: "The Golgi apparatus", distractors: ["The rough endoplasmic reticulum", "The nucleolus", "The peroxisome"] },
+        { correct: "Golgi apparatus", distractors: ["Mitochondria", "Lysosome", "Cytoskeleton"] }
+      ],
+      explanation: `
+        <ul>
+          <li>The <b>Golgi apparatus</b> (Golgi complex) is composed of a series of flattened, stacked pouches called <b>cisternae</b>.</li>
+          <li>Its main role is <b>transporting, modifying, and packaging proteins and lipids</b> to their targeted destinations — essentially the cell's "post office."</li>
+          <li>It's found in both plant and animal cells, located within the cytoplasm.</li>
+          <li>The <b>rough ER</b> makes the proteins; the <b>Golgi</b> finishes and ships them.</li>
+        </ul>
+      `
+    },
+    {
+      templates: [
+        "Which organelle is described as the \"largest organelle\" in a eukaryotic cell, contains the cell's genetic information, and is enclosed by a porous double membrane?",
+        "The control center of the cell, which houses DNA organized into chromosomes and contains a smaller structure called the nucleolus, is which organelle?",
+        "Which double-membraned organelle monitors and controls cellular activities like metabolism and growth using genetic information stored within it?"
+      ],
+      choiceSets: [
+        { correct: "The nucleus", distractors: ["The mitochondrion", "The Golgi apparatus", "The centrosome"] },
+        { correct: "Nucleus", distractors: ["Endoplasmic reticulum", "Vacuole", "Ribosome"] }
+      ],
+      explanation: `
+        <ul>
+          <li>The <b>nucleus</b> is the largest organelle in a eukaryotic cell — double-membraned, dark, round, and surrounded by a porous nuclear membrane.</li>
+          <li>It is the storehouse of the cell's <b>DNA</b>, organized into thread-like structures called <b>chromosomes</b>, which carry genes.</li>
+          <li>Inside the nucleus, the <b>nucleolus</b> is responsible for synthesizing protein components and RNA (specifically ribosomal components).</li>
+          <li>The nucleus functions as the cell's "control center," monitoring metabolism and growth via genetic information.</li>
+        </ul>
+      `
+    },
+    {
+      templates: [
+        "Ribosomes are mainly composed of which two components, and what is their primary function?",
+        "What are ribosomes made of, and what process are they primarily responsible for?",
+        "A non-membrane-bound organelle composed mostly of RNA and protein, responsible for protein synthesis, and found either free in the cytoplasm or attached to the ER, describes which structure?"
+      ],
+      choiceSets: [
+        { correct: "Mostly RNA and protein; their main function is protein synthesis", distractors: ["Mostly lipids and carbohydrates; their main function is energy storage", "Mostly DNA and protein; their main function is cell division", "Mostly cellulose; their main function is structural support"] },
+        { correct: "About two-thirds RNA and one-third protein, primarily responsible for synthesizing proteins", distractors: ["Mainly phospholipids, primarily responsible for forming the cell membrane", "Mainly enzymes, primarily responsible for breaking down toxins", "Mainly chlorophyll, primarily responsible for photosynthesis"] }
+      ],
+      explanation: `
+        <ul>
+          <li><b>Ribosomes</b> are mainly composed of about <b>2/3 RNA and 1/3 protein</b>.</li>
+          <li>They are <b>non-membrane-bound</b> organelles, found either free-floating in the cytoplasm or attached to the rough endoplasmic reticulum.</li>
+          <li>Their primary function is <b>protein synthesis</b> — essential for the survival of all living cells.</li>
+          <li>They are classified as <b>70S</b> (in prokaryotes) or <b>80S</b> (in eukaryotes) based on their density/size (Svedberg units), and each is composed of two subunits.</li>
+        </ul>
+      `
+    },
+    {
+      templates: [
+        "What is the primary role of the cytoskeleton within a cell?",
+        "A continuous network of filamentous protein structures running from the nucleus to the plasma membrane, providing shape and mechanical support, and aiding in cell movement, describes which structure?",
+        "Which structure provides a cell with both its shape/mechanical resistance AND contributes to motility during cell division (cytokinesis)?"
+      ],
+      choiceSets: [
+        { correct: "The cytoskeleton", distractors: ["The cell wall", "The plasma membrane alone", "The nucleolus"] },
+        { correct: "Cytoskeleton", distractors: ["Centrosome", "Vacuole", "Plastid"] }
+      ],
+      explanation: `
+        <ul>
+          <li>The <b>cytoskeleton</b> is a continuous network of filamentous proteinaceous structures running throughout the cytoplasm, from the nucleus to the plasma membrane.</li>
+          <li>It provides <b>shape and mechanical resistance</b> against deformation.</li>
+          <li>Its filaments can rapidly assemble or disassemble depending on the cell's needs, and their <b>contractile nature</b> helps with motility, especially during <b>cytokinesis</b> (cell division).</li>
+          <li>It's found in all living cells, especially eukaryotes.</li>
+        </ul>
+      `
+    },
+    {
+      templates: [
+        "Cilia and flagella both contain a core structure called an axoneme — how many pairs of peripheral microtubules does this axoneme typically contain?",
+        "The axoneme — the core structure of cilia and flagella — is built from a characteristic arrangement of microtubules. How many peripheral microtubule pairs surround the central pair?",
+        "What structures do cilia and flagella emerge from, and how many radial spokes connect the peripheral microtubule pairs to the central sheath?"
+      ],
+      choiceSets: [
+        { correct: "9 pairs of peripheral microtubules (with a central pair), connected by 9 radial spokes, emerging from basal bodies", distractors: ["7 pairs of peripheral microtubules with no central pair, emerging directly from the nucleus", "11 pairs of peripheral microtubules connected by 5 radial spokes, emerging from the Golgi apparatus", "9 single (unpaired) microtubules with 3 radial spokes, emerging from mitochondria"] },
+        { correct: "9 peripheral microtubule pairs surrounding a central pair, connected via 9 radial spokes; cilia/flagella emerge from basal bodies (centriole-like structures)", distractors: ["6 peripheral pairs with no radial spokes, emerging from lysosomes", "9 peripheral pairs but no central microtubules at all, emerging from the nuclear envelope", "12 peripheral microtubules arranged in a single ring, emerging from ribosomes"] }
+      ],
+      explanation: `
+        <ul>
+          <li>The <b>axoneme</b> (core of cilia and flagella) contains <b>9 pairs of peripheral microtubules</b> arranged around a set of <b>central microtubules</b> running parallel to the axis.</li>
+          <li>The central tubules are interconnected by a bridge and embedded in a central sheath.</li>
+          <li>One peripheral microtubule pair connects to the central sheath via a <b>radial spoke</b> — giving a total of <b>9 radial spokes</b>.</li>
+          <li>Cilia and flagella emerge from centriole-like structures called <b>basal bodies</b>.</li>
+          <li><b>Cilia</b> are shorter, hair-like, and move the cell or extracellular fluid like oars; <b>flagella</b> are longer and drive cell movement.</li>
+        </ul>
+      `
+    },
+    {
+      templates: [
+        "What structures arise from centrioles to help separate chromosomes during cell division?",
+        "During cell division, what do the centrioles within the centrosome give rise to, which then helps pull chromosomes apart?",
+        "Each centriole is composed of peripheral fibrils made of which protein, and what structure do centrioles produce during division?"
+      ],
+      choiceSets: [
+        { correct: "Spindle fibres, made possible by tubulin protein in the centrioles", distractors: ["Cell wall fibers made of cellulose", "Lysosomal enzymes that digest the nuclear envelope", "Cristae that fold the inner mitochondrial membrane"] },
+        { correct: "Spindle fibres (the centrioles, composed of tubulin fibrils, give rise to these during division)", distractors: ["Ribosomal subunits used for new protein synthesis", "New Golgi stacks for the daughter cells", "Vacuoles to store excess chromosomes"] }
+      ],
+      explanation: `
+        <ul>
+          <li>The <b>centrosome</b> is made up of two perpendicular <b>centrioles</b>.</li>
+          <li>Each centriole is composed of <b>9 equally spaced peripheral fibrils of tubulin protein</b> (each fibril being a set of interlinked triplets), connected to a proteinaceous core ("hub") via radial spokes.</li>
+          <li>During cell division, the centrioles (via their basal-body-like role) give rise to <b>spindle fibres</b>, which are essential for organizing and separating chromosomes.</li>
+          <li>Centrioles also form the <b>basal bodies</b> of cilia and flagella.</li>
+        </ul>
+      `
+    },
+    {
+      templates: [
+        "Compared to animal cells, plant cells typically have vacuoles that are what size, and what is one major function of vacuoles?",
+        "Vacuoles are membrane-bound, fluid-filled organelles. How do plant and animal cell vacuoles typically compare in size, and what do vacuoles store?",
+        "What is true about the size of vacuoles in plant cells versus animal cells, and what role do vacuoles play in waste handling?"
+      ],
+      choiceSets: [
+        { correct: "Plant cells have larger vacuoles than animal cells; vacuoles store nutrients and also store/expel waste products", distractors: ["Plant cells have smaller vacuoles than animal cells; vacuoles only produce ATP", "Plant and animal vacuoles are always identical in size; vacuoles only function in photosynthesis", "Animal cells have larger vacuoles than plant cells; vacuoles synthesize new DNA"] },
+        { correct: "Plant cells generally have larger vacuoles; vacuoles act as storage bubbles for food/nutrients and eventually expel waste", distractors: ["Animal cells generally have larger vacuoles; vacuoles primarily generate cellular energy", "Plant and animal cells never contain vacuoles; only fungi do", "Plant cells lack vacuoles entirely; only animal cells have them"] }
+      ],
+      explanation: `
+        <ul>
+          <li><b>Vacuoles</b> are storage bubbles of irregular shape, fluid-filled and enclosed by a membrane.</li>
+          <li>They store food or nutrients the cell needs to survive, and also store waste products, which are eventually expelled — protecting the rest of the cell from contamination.</li>
+          <li><b>Plant cells generally have larger vacuoles</b> than animal cells.</li>
+        </ul>
+      `
+    },
+    {
+      templates: [
+        "Based on the presence or absence of a membrane, which of the following is correctly classified as a non-membrane-bound organelle found in both prokaryotic and eukaryotic cells?",
+        "Which structure(s) are classified as non-membrane-bound organelles present in both prokaryotic and eukaryotic cells?",
+        "Cell organelles can be grouped by membrane structure (none, single, or double membrane). Which group does the cell wall, ribosomes, and cytoskeleton belong to?"
+      ],
+      choiceSets: [
+        { correct: "Non-membrane-bound organelles (e.g., ribosomes, cytoskeleton, cell wall)", distractors: ["Single membrane-bound organelles (e.g., lysosomes, vacuoles)", "Double membrane-bound organelles (e.g., nucleus, mitochondria)", "Organelles unique to chloroplast-containing cells only"] },
+        { correct: "Non-membrane-bound — present in both prokaryotic and eukaryotic cells", distractors: ["Single-membrane-bound — present only in eukaryotic cells", "Double-membrane-bound — present only in plant cells", "Triple-membrane-bound — a category that doesn't actually exist in standard classification"] }
+      ],
+      explanation: `
+        <ul>
+          <li>Cell organelles are classified into three categories based on membranes:
+            <ul>
+              <li><b>No membrane:</b> cell wall, ribosomes, cytoskeleton — present in both prokaryotic and eukaryotic cells.</li>
+              <li><b>Single membrane:</b> vacuole, lysosome, Golgi apparatus, endoplasmic reticulum — found only in eukaryotic cells.</li>
+              <li><b>Double membrane:</b> nucleus, mitochondria, chloroplast — found only in eukaryotic cells.</li>
+            </ul>
+          </li>
+          <li>This classification is a useful way to remember which organelles can/cannot be found in simpler (prokaryotic) cells.</li>
+        </ul>
+      `
+    }
+  ],
+
+  "Cell Transport": [
+    {
+      templates: [
+        "What is the key difference between passive transport and active transport across a cell membrane?",
+        "How do passive and active transport fundamentally differ in terms of energy requirements and direction of movement?",
+        "Substances moving from an area of higher concentration to lower concentration without using cellular energy describes which type of transport, as opposed to the type that requires ATP?"
+      ],
+      choiceSets: [
+        { correct: "Passive transport requires no energy and moves substances down their concentration gradient (high to low); active transport requires energy (ATP) and can move substances against their gradient (low to high)", distractors: ["Passive transport requires ATP, while active transport requires no energy at all", "Both passive and active transport always require ATP, but differ in the proteins used", "Passive transport only happens in plant cells, while active transport only happens in animal cells"] },
+        { correct: "Passive transport moves substances from high to low concentration without energy input; active transport moves substances against the concentration gradient and requires ATP", distractors: ["Passive transport always requires transport proteins, while active transport never does", "Active transport moves substances from high to low concentration without energy; passive transport requires ATP", "Passive transport only occurs across the nuclear membrane"] }
+      ],
+      explanation: `
+        <ul>
+          <li><b>Passive transport</b> occurs without any input of energy — substances move from an area of <b>higher concentration to lower concentration</b> (down the concentration gradient), like a ball rolling downhill.</li>
+          <li><b>Active transport</b> requires energy in the form of <b>ATP</b>, often because substances are moving from an area of <b>lower to higher concentration</b> (against the gradient — "uphill").</li>
+          <li>Passive transport includes simple diffusion, osmosis, and facilitated diffusion.</li>
+          <li>Active transport includes pump transport (e.g., sodium-potassium pump) and vesicle transport (endocytosis/exocytosis).</li>
+        </ul>
+      `
+    },
+    {
+      templates: [
+        "If a red blood cell is placed into a <b>hypertonic</b> solution, what will happen to the cell?",
+        "A solution with a higher solute concentration (and therefore lower water concentration) than the inside of a red blood cell is described as hypertonic. What happens to the cell in this environment?",
+        "Placing a red blood cell into a hypertonic solution causes net water movement in which direction, and with what visible effect on the cell?"
+      ],
+      choiceSets: [
+        { correct: "The cell will shrink (crenate) as water flows out of the cell into the surrounding solution", distractors: ["The cell will swell and potentially rupture as water rushes in", "The cell will remain exactly the same size, as water moves equally in both directions", "The cell will immediately divide via mitosis"] },
+        { correct: "Water moves out of the cell, causing it to shrink/crenate", distractors: ["Water moves into the cell, causing it to swell and lyse", "No net water movement occurs, since the cell is already isotonic", "The cell membrane dissolves entirely"] }
+      ],
+      explanation: `
+        <ul>
+          <li>A <b>hypertonic</b> solution has a <b>higher</b> solute concentration than the inside of the cell (hyper = greater than normal).</li>
+          <li>This means the solution has a <i>lower</i> water concentration than inside the cell, so the <b>net flow of water will be OUT of the cell</b> (water moves toward the area with less water, i.e., toward the higher solute concentration).</li>
+          <li>For a red blood cell, this causes the cell to <b>shrink/crenate</b>.</li>
+          <li>Compare: in a <b>hypotonic</b> solution (lower solute outside), water flows <i>into</i> the cell, causing swelling/lysis. In an <b>isotonic</b> solution, there's no net water movement.</li>
+        </ul>
+      `
+    },
+    {
+      templates: [
+        "In an <b>isotonic</b> solution, what happens to the net movement of water across a cell's membrane?",
+        "When the solute concentration outside a cell is equal to the solute concentration inside, the cell is said to be in an isotonic solution. What is the result for water movement?",
+        "A red blood cell placed in an isotonic solution will retain its normal shape — why?"
+      ],
+      choiceSets: [
+        { correct: "There is no net movement of water — the amount entering the cell equals the amount leaving", distractors: ["Water moves only into the cell, causing swelling", "Water moves only out of the cell, causing shrinkage", "Water moves in pulses, alternating direction every few seconds"] },
+        { correct: "Water enters and exits the cell at the same rate, so there's no net change in cell volume", distractors: ["All water exits the cell permanently", "All water from outside enters the cell and stays", "Water movement stops completely and osmosis ceases entirely"] }
+      ],
+      explanation: `
+        <ul>
+          <li>In an <b>isotonic</b> solution (iso = equal/same as normal), the solute concentration outside the cell equals the solute concentration inside.</li>
+          <li>The amount of <b>water entering the cell equals the amount leaving</b> — so there is <b>no net movement</b> of water.</li>
+          <li>A red blood cell in this environment retains its normal shape, since there's no net swelling or shrinking.</li>
+          <li>This is different from hypertonic (net water loss → shrinking) and hypotonic (net water gain → swelling/lysis) solutions.</li>
+        </ul>
+      `
+    },
+    {
+      templates: [
+        "What is the defining difference between a channel protein and a carrier protein in facilitated diffusion?",
+        "During facilitated diffusion, two types of transport proteins help substances cross the membrane. How do channel proteins and carrier proteins differ in <i>how</i> they move substances?",
+        "Which statement correctly distinguishes how channel proteins move substances across a membrane compared to carrier proteins?"
+      ],
+      choiceSets: [
+        { correct: "Channel proteins form pores/tiny holes that substances pass through directly; carrier proteins bind to the substance and change shape to carry it across", distractors: ["Channel proteins change shape to carry substances across; carrier proteins form permanent open pores", "Channel proteins require ATP to open; carrier proteins never require any interaction with the substance", "Both channel and carrier proteins work identically — the names are interchangeable"] },
+        { correct: "Channel proteins create pores that allow water and small ions to pass through without touching the membrane's hydrophobic interior; carrier proteins physically bind the molecule and change conformation to ferry it across", distractors: ["Channel proteins bind and change shape like an enzyme; carrier proteins are static pores that never move", "Channel proteins only function during active transport; carrier proteins only function during osmosis", "Carrier proteins form the cell wall, while channel proteins form the nucleus"] }
+      ],
+      explanation: `
+        <ul>
+          <li><b>Channel proteins</b> form <b>pores or tiny holes</b> in the membrane, allowing water molecules and small ions to pass through <b>without</b> coming into contact with the hydrophobic interior of the membrane.</li>
+          <li><b>Carrier proteins</b> work differently: they <b>bind</b> with specific ions or molecules, and in doing so, they <b>change shape</b> — this shape change is what carries the substance across the membrane.</li>
+          <li>Both are types of transport proteins involved in <b>facilitated diffusion</b>, which is needed for hydrophilic molecules, charged ions, and relatively large molecules (like glucose) that cannot simply diffuse across the lipid bilayer.</li>
+        </ul>
+      `
+    },
+    {
+      templates: [
+        "Why do molecules like glucose, charged ions, and other hydrophilic substances need help (via transport proteins) to cross the plasma membrane?",
+        "What property of the plasma membrane prevents large or charged hydrophilic molecules (e.g., glucose, ions) from simply diffusing across it?",
+        "The plasma membrane's interior is hydrophobic (made of lipid tails). How does this property affect the movement of substances like glucose and ions?"
+      ],
+      choiceSets: [
+        { correct: "The hydrophobic interior of the lipid bilayer blocks hydrophilic, charged, or large molecules from passing directly through", distractors: ["These molecules are too small and would leak out too quickly without proteins", "The membrane has no lipids at all in those regions", "These molecules can already pass freely; the proteins are simply optional shortcuts"] },
+        { correct: "The lipid bilayer's hydrophobic core repels charged or large polar molecules, so they require transport proteins (channel or carrier) to cross", distractors: ["The membrane is completely impermeable to everything, including water and oxygen", "Large molecules pass easily but small molecules cannot", "Transport proteins are only needed for molecules leaving the cell, not entering"] }
+      ],
+      explanation: `
+        <ul>
+          <li>The plasma membrane is a <b>lipid bilayer</b> — its interior is <b>hydrophobic</b> (water-fearing), made up of fatty acid tails.</li>
+          <li><b>Hydrophilic molecules, charged ions, and relatively large molecules</b> (like glucose) cannot simply pass through this hydrophobic interior — they would be repelled or blocked.</li>
+          <li>This is why these substances need help from <b>transport proteins</b> (channel proteins or carrier proteins) — this assisted process is called <b>facilitated diffusion</b>.</li>
+          <li>By contrast, small, uncharged, or hydrophobic molecules (like O₂ and CO₂) <i>can</i> diffuse directly through the membrane without help.</li>
+        </ul>
+      `
+    }
+  ],
+
+  "Active Transport & Homeostasis": [
+    {
+      templates: [
+        "In the sodium-potassium pump, what is the typical direction of movement for sodium (Na⁺) and potassium (K⁺) ions?",
+        "The sodium-potassium pump moves which ions out of the cell, and which ions into the cell?",
+        "Describe the net ion movement performed by the sodium-potassium pump across the plasma membrane."
+      ],
+      choiceSets: [
+        { correct: "Sodium ions are pumped OUT of the cell, and potassium ions are pumped INTO the cell", distractors: ["Potassium ions are pumped out of the cell, and sodium ions are pumped into the cell", "Both sodium and potassium ions are pumped out of the cell simultaneously", "Both sodium and potassium ions are pumped into the cell simultaneously"] },
+        { correct: "Three sodium ions are moved out of the cell while two potassium ions are moved into the cell, both against their concentration gradients", distractors: ["Sodium and potassium simply diffuse passively in opposite directions with no protein involved", "Potassium is pumped out and sodium pumped in, both moving down their gradients", "Sodium is pumped into the cell while chloride is pumped out"] }
+      ],
+      explanation: `
+        <ul>
+          <li>The <b>sodium-potassium pump</b> moves <b>sodium ions (Na⁺) OUT</b> of the cell and <b>potassium ions (K⁺) IN</b> to the cell.</li>
+          <li>Specifically, <b>3 sodium ions</b> are pumped out for every <b>2 potassium ions</b> pumped in.</li>
+          <li>Both ions are moved <b>against their concentration gradients</b> (from lower to higher concentration), which is why this requires <b>ATP energy</b> — it's "uphill" transport.</li>
+          <li>Normally, sodium is about 10× more concentrated <i>outside</i> the cell, while potassium is about 30× more concentrated <i>inside</i> the cell — the pump maintains this difference.</li>
+        </ul>
+      `
+    },
+    {
+      templates: [
+        "What is the role of the carrier protein during the sodium-potassium pump cycle?",
+        "How does ATP drive the sodium-potassium pump at the molecular level?",
+        "What happens to the carrier protein in the sodium-potassium pump after it receives a phosphate group from ATP?"
+      ],
+      choiceSets: [
+        { correct: "The carrier protein receives a phosphate group from ATP, which causes it to change shape — this shape change pumps sodium ions out, after which potassium ions bind and the process reverses to bring them in", distractors: ["The carrier protein dissolves after receiving the phosphate group, releasing both ions simultaneously", "ATP directly pushes the ions through a permanent open channel without involving the carrier protein", "The carrier protein only binds potassium; sodium passes through a separate, unrelated channel protein"] },
+        { correct: "ATP transfers a phosphate group to the carrier protein, triggering a conformational (shape) change that ejects sodium ions; the protein then binds potassium ions and reverses shape to bring them inside", distractors: ["The carrier protein uses the phosphate group as a permanent label and never changes shape again", "ATP is consumed only to open a channel protein, which then works passively without further energy", "The phosphate group is used to build a new carrier protein from scratch each cycle"] }
+      ],
+      explanation: `
+        <ul>
+          <li>First, <b>three sodium ions</b> bind to the carrier protein in the cell membrane.</li>
+          <li>The carrier protein then receives a <b>phosphate group from ATP</b> (when ATP loses this phosphate, energy is released).</li>
+          <li>This causes the carrier protein to <b>change shape</b>, which pumps the three sodium ions <b>out</b> of the cell.</li>
+          <li>Then, <b>two potassium ions</b> bind to the carrier protein, the process reverses, and the potassium ions are pumped <b>into</b> the cell.</li>
+          <li>This cycle is essential for maintaining the <b>membrane potential</b> — the electrical gradient across the cell membrane critical for nerve impulses and muscle contraction.</li>
+        </ul>
+      `
+    },
+    {
+      templates: [
+        "What is the difference between phagocytosis and pinocytosis, both of which are forms of endocytosis?",
+        "Endocytosis can occur in different forms depending on what is being taken into the cell. How do phagocytosis and pinocytosis differ?",
+        "If a cell engulfs an entire solid particle using membrane projections called pseudopodia, this is called phagocytosis. What is the equivalent process called when a cell takes in dissolved fluid instead?"
+      ],
+      choiceSets: [
+        { correct: "Phagocytosis is when the cell engulfs a solid particle (using pseudopodia) to form a phagosome; pinocytosis is when the cell membrane folds to take in fluid and dissolved substances", distractors: ["Phagocytosis takes in fluid; pinocytosis takes in solid particles", "Phagocytosis and pinocytosis are identical processes with different names used in plants vs. animals", "Phagocytosis requires receptors on the membrane; pinocytosis never involves the membrane at all"] },
+        { correct: "Phagocytosis (\"cell eating\") engulfs solid particles via pseudopodia forming a food vacuole; pinocytosis (\"cell drinking\") forms a vesicle around extracellular fluid and its dissolved contents", distractors: ["Phagocytosis only happens in plant cells; pinocytosis only happens in animal cells", "Both processes exclusively move substances OUT of the cell", "Pinocytosis engulfs solid particles, while phagocytosis only takes in water"] }
+      ],
+      explanation: `
+        <ul>
+          <li><b>Phagocytosis</b> ("cell eating"): the plasma membrane wraps around a <b>solid particle</b> outside the cell using projections called <b>pseudopodia</b>, then pinches off to form a <b>phagosome</b> (food vacuole).</li>
+          <li><b>Pinocytosis</b> ("cell drinking"): the membrane folds to form a vesicle that carries <b>fluid and dissolved substances</b> from the extracellular space.</li>
+          <li>Both are types of <b>endocytosis</b> (moving substances INTO the cell) and both require <b>energy</b>, making them forms of active transport.</li>
+          <li>A third type, <b>receptor-mediated endocytosis</b>, occurs when receptors on the membrane bind to specific particles before the membrane invaginates.</li>
+        </ul>
+      `
+    },
+    {
+      templates: [
+        "What human disease results from defective or missing LDL receptors, preventing receptor-mediated endocytosis of LDL (\"bad\" cholesterol) from the blood?",
+        "Receptor-mediated endocytosis normally removes LDL cholesterol from the blood. What genetic condition arises when the LDL receptors are defective or absent, leading to dangerously high blood cholesterol?",
+        "Which disease is a real-world example of what happens when receptor-mediated endocytosis fails for a specific target molecule (LDL)?"
+      ],
+      choiceSets: [
+        { correct: "Familial hypercholesterolemia", distractors: ["Down syndrome", "Diabetes insipidus", "Cystic fibrosis"] },
+        { correct: "Familial hypercholesterolemia — a genetic disease where LDL cannot be cleared from the blood", distractors: ["Klinefelter syndrome", "Tay-Sachs disease caused by lysosomal enzyme buildup", "Edwards syndrome"] }
+      ],
+      explanation: `
+        <ul>
+          <li><b>Receptor-mediated endocytosis</b> normally removes LDL ("bad" cholesterol) from the blood — receptors on the plasma membrane bind LDL particles, and the membrane invaginates to bring them into the cell.</li>
+          <li>In <b>familial hypercholesterolemia</b>, the LDL receptors are <b>defective or missing entirely</b>.</li>
+          <li>As a result, LDL cannot be cleared from the blood and instead <b>accumulates</b>, leading to life-threatening cholesterol levels.</li>
+          <li>This is a clear example of how a failure in a specific transport mechanism (not transport <i>in general</i>) can cause a targeted, serious disease.</li>
+        </ul>
+      `
+    },
+    {
+      templates: [
+        "What is exocytosis, and how does it relate to vesicle transport?",
+        "Describe the process by which a substance synthesized inside the cell (like a hormone or neurotransmitter) gets released to the outside.",
+        "Which transport process involves a vesicle's membrane fusing with the cell membrane to release its contents outside the cell?"
+      ],
+      choiceSets: [
+        { correct: "Exocytosis — a vesicle containing the substance moves to the cell membrane, the vesicle membrane fuses with it, and the contents are released outside the cell", distractors: ["Endocytosis — the cell membrane folds inward to trap the substance and pull it inside", "Simple diffusion — the substance moves directly through the lipid bilayer with no vesicle involved", "Osmosis — water moves out of the cell carrying the substance with it"] },
+        { correct: "Exocytosis, which is essentially endocytosis in reverse: an internal vesicle's membrane merges with the plasma membrane to expel its cargo", distractors: ["Phagocytosis, where pseudopodia engulf the substance and pull it inward", "Facilitated diffusion through a carrier protein that changes shape", "The sodium-potassium pump, which exports the substance using ATP directly"] }
+      ],
+      explanation: `
+        <ul>
+          <li><b>Exocytosis</b> is a type of <b>vesicle transport</b> that moves a substance <b>OUT of the cell</b>.</li>
+          <li>A vesicle containing the substance moves through the cytoplasm to the cell membrane.</li>
+          <li>The vesicle's membrane then <b>fuses</b> with the cell membrane, and the contents are released into the extracellular space.</li>
+          <li>It's described as "endocytosis in reverse" — and like endocytosis, it requires <b>energy</b>, making it a form of <b>active transport</b>.</li>
+          <li>A real-world example: neurotransmitters are released from neurons via exocytosis.</li>
+        </ul>
+      `
+    }
+  ],
+
+  "Mitosis": [
+    {
+      templates: [
+        "During which phase of mitosis do chromosomes align along the metaphase plate, with the cell checking that all kinetochores are correctly attached before proceeding?",
+        "The cell's \"checkpoint\" — verifying that sister chromatids are properly attached to spindle fibres before division proceeds — occurs during which phase?",
+        "Which phase of mitosis is defined by chromosomes lining up along a central, theoretical line, with the centrosomes positioned at opposite ends of the cell?"
+      ],
+      choiceSets: [
+        { correct: "Metaphase", distractors: ["Prophase", "Anaphase", "Telophase"] },
+        { correct: "Metaphase — chromosomes align on the metaphase plate and kinetochore attachment is verified", distractors: ["Prometaphase — the nuclear envelope is still breaking down at this point", "Anaphase — chromatids are already being pulled apart by this stage", "Cytokinesis — this is the division of the cytoplasm, occurring after telophase begins"] }
+      ],
+      explanation: `
+        <ul>
+          <li>During <b>metaphase</b>, chromosomes align along a theoretical line called the <b>metaphase plate</b>, and the centrosomes are positioned at opposite ends of the cell.</li>
+          <li>At this stage, the cell performs a <b>checkpoint</b>: it verifies that all chromosomes are properly aligned and that their <b>kinetochores</b> are correctly attached to spindle fibres.</li>
+          <li>This ensures sister chromatids will be split <b>evenly</b> between the two daughter cells. If there's an error in alignment or attachment, the cell <b>halts</b> further progress until it's fixed.</li>
+          <li>This checkpoint is important clinically: errors here are the most common source of mitotic errors leading to unequal chromosome distribution.</li>
+        </ul>
+      `
+    },
+    {
+      templates: [
+        "What happens during anaphase of mitosis?",
+        "Sister chromatids are pulled to opposite poles of the cell, and spindle fibres not attached to chromatids elongate the cell — this describes which phase of mitosis?",
+        "During which stage of mitosis do spindle fibres contract, breaking sister chromatids apart at the centromere?"
+      ],
+      choiceSets: [
+        { correct: "Anaphase — sister chromatids are separated and pulled to opposite poles, while the cell elongates in preparation for division", distractors: ["Prophase — chromatin begins condensing into chromosomes for the first time", "Metaphase — chromosomes are still aligning at the cell's center, not yet separating", "Telophase — the nuclear envelopes are reforming, separation has already finished"] },
+        { correct: "Anaphase", distractors: ["Prometaphase", "Telophase", "Cytokinesis"] }
+      ],
+      explanation: `
+        <ul>
+          <li>During <b>anaphase</b>, the spindle fibres <b>contract</b>, breaking the sister chromatids apart at the <b>centromere</b> and moving them to <b>opposite poles</b> of the cell.</li>
+          <li>Spindle fibres that are <i>not</i> attached to chromatids <b>elongate</b> the cell, preparing it for division.</li>
+          <li>This is the stage where genetically identical sister chromatids are physically separated, becoming individual chromosomes for each future daughter cell.</li>
+          <li>Errors during this stage (or the metaphase checkpoint that precedes it) can cause unequal chromosome distribution.</li>
+        </ul>
+      `
+    },
+    {
+      templates: [
+        "If errors during mitosis cause one daughter cell to receive an extra chromosome while the other receives one too few, what typically happens to each cell?",
+        "After a mitotic error in chromosome distribution, one daughter cell ends up missing a chromosome while the other has an extra one. What is the typical fate of each cell, according to clinical context?",
+        "Why is a cell with an extra chromosome (from a mitotic error) potentially more dangerous than a cell missing a chromosome?"
+      ],
+      choiceSets: [
+        { correct: "The cell missing a chromosome usually dies, while the cell with an extra chromosome can survive and potentially cause problems (e.g., contribute to cancer if the extra chromosome carries growth-promoting genes)", distractors: ["Both cells immediately die regardless of which chromosome is missing or extra", "The cell with the extra chromosome dies, while the cell missing a chromosome survives normally with no consequences", "Both cells continue functioning identically with no difference in outcome"] },
+        { correct: "The chromosome-deficient cell typically dies; the chromosome-excess cell can survive, and if the extra chromosome carries growth-related genes, it may contribute to cancer development (though this alone is not sufficient to cause cancer)", distractors: ["Both cells undergo apoptosis at the same rate, with no meaningful difference between them", "The extra chromosome is automatically destroyed by lysosomes before causing any issue", "The cell missing a chromosome becomes cancerous, while the other cell dies"] }
+      ],
+      explanation: `
+        <ul>
+          <li>Errors in mitosis typically occur during <b>metaphase</b> — due to misalignment of chromosomes on the metaphase plate, or failure of spindle fibres to attach to a kinetochore.</li>
+          <li>This results in daughter cells with an <b>unequal distribution</b> of chromosomes — one cell ends up with one too many, the other with one too few.</li>
+          <li>The cell <b>missing</b> a chromosome <b>usually dies</b>.</li>
+          <li>The cell with the <b>extra</b> chromosome <b>can survive</b> — and if that extra chromosome carries genes that promote cell growth, this <i>may</i> contribute to <b>cancer</b> via constitutive activation of growth signaling pathways.</li>
+          <li><b>Important caveat:</b> the mechanism of cancer is complex and requires multiple genetic "hits" — an extra chromosome alone is not sufficient to cause cancer.</li>
+        </ul>
+      `
+    }
+  ],
+
+  "Meiosis": [
+    {
+      templates: [
+        "What is the final result of meiosis in terms of the number and genetic identity of the daughter cells produced?",
+        "Meiosis consists of two successive divisions starting from one diploid cell. What is the end product?",
+        "Why is meiosis described as producing cells that are both \"haploid\" and \"non-identical,\" unlike mitosis?"
+      ],
+      choiceSets: [
+        { correct: "Four non-identical haploid daughter cells, each with half the usual chromosome number", distractors: ["Two identical diploid daughter cells", "Four identical diploid daughter cells", "Two non-identical haploid daughter cells"] },
+        { correct: "Four genetically distinct haploid gametes, each containing a single copy of each chromosome", distractors: ["Two genetically identical diploid cells, just like in mitosis", "A single tetraploid cell with double the normal chromosome number", "Four identical haploid cells with no genetic variation between them"] }
+      ],
+      explanation: `
+        <ul>
+          <li>Meiosis begins with a single <b>diploid</b> cell (two copies of each chromosome).</li>
+          <li>After two rounds of division — <b>meiosis I</b> and <b>meiosis II</b> — the result is <b>four non-identical haploid gametes</b>, each with <b>half</b> the usual chromosome number (a single copy of each chromosome).</li>
+          <li>This contrasts with <b>mitosis</b>, which produces <b>two genetically identical diploid</b> daughter cells.</li>
+          <li>The genetic variation between the four gametes comes from <b>crossing over</b> (in prophase I) and <b>independent assortment</b> (in metaphase I).</li>
+        </ul>
+      `
+    },
+    {
+      templates: [
+        "Why is Meiosis I referred to as \"reductional division\"?",
+        "What key event distinguishes Meiosis I from Meiosis II, earning Meiosis I the name \"reductional division\"?",
+        "During Meiosis I, what happens to homologous chromosomes, and why does this justify calling it a \"reductional\" division?"
+      ],
+      choiceSets: [
+        { correct: "Because it reduces the chromosome number by half — homologous chromosomes are separated, with each daughter cell receiving one chromosome from each pair", distractors: ["Because it doubles the chromosome number before the cell divides", "Because it removes the nucleus entirely from each daughter cell", "Because it reduces the number of organelles, not chromosomes, by half"] },
+        { correct: "Meiosis I separates homologous chromosome pairs, halving the chromosome number — each resulting cell gets one chromosome from each original pair", distractors: ["Meiosis I separates sister chromatids, which is the same thing that happens in Meiosis II", "Meiosis I duplicates the genome, doubling the number of chromosomes per cell", "Meiosis I only affects the cytoplasm, leaving chromosome number unchanged"] }
+      ],
+      explanation: `
+        <ul>
+          <li><b>Meiosis I</b> is called <b>"reductional division"</b> because it <b>reduces the chromosome number by half</b>.</li>
+          <li>During this phase, <b>homologous chromosomes</b> (the matching pairs — one from each parent) are <b>separated</b>, with each daughter cell receiving <b>one chromosome from each pair</b>.</li>
+          <li>Key sub-stages: in <b>Prophase I</b>, <b>crossing over</b> occurs at chiasmata (exchanging genetic material between homologous chromosomes); in <b>Metaphase I</b>, <b>independent assortment</b> randomly orients maternal/paternal chromosomes.</li>
+          <li>By contrast, <b>Meiosis II</b> is "equational division" — chromosome number stays the same, but sister chromatids are separated.</li>
+        </ul>
+      `
+    },
+    {
+      templates: [
+        "What genetic event occurs during Prophase I of meiosis, where homologous chromosomes exchange genetic material at points called chiasmata?",
+        "Crossing over — the exchange of genetic material between homologous chromosomes — occurs at which stage of meiosis, and what is the significance of this event?",
+        "At what stage of meiosis does crossing over occur, and what does it contribute to the resulting gametes?"
+      ],
+      choiceSets: [
+        { correct: "Prophase I — crossing over creates new allele combinations, increasing genetic diversity", distractors: ["Metaphase II — crossing over here duplicates the entire genome", "Telophase I — crossing over here removes one set of chromosomes entirely", "Anaphase II — crossing over here fuses sister chromatids permanently"] },
+        { correct: "It occurs during Prophase I, at points called chiasmata, and it promotes genetic diversity by creating new combinations of alleles", distractors: ["It occurs during Cytokinesis II, and it has no effect on genetic diversity", "It occurs during Prometaphase I, and it reduces genetic diversity by eliminating mismatched alleles", "It occurs only in Meiosis II, and it duplicates chromosomes before the final division"] }
+      ],
+      explanation: `
+        <ul>
+          <li><b>Crossing over</b> occurs during <b>Prophase I</b> of meiosis, at points called <b>chiasmata</b>.</li>
+          <li>Here, <b>homologous chromosomes exchange genetic material</b>, creating <b>new allele combinations</b>.</li>
+          <li>This is one of the two major sources of genetic diversity in meiosis (the other being <b>independent assortment</b> during Metaphase I).</li>
+          <li>This is also when chromosomes begin to <b>replicate and condense</b>, and the nuclear envelope starts breaking down.</li>
+        </ul>
+      `
+    },
+    {
+      templates: [
+        "What is \"nondisjunction,\" and what is its consequence for the resulting gametes?",
+        "Failure of chromosomes to separate correctly during anaphase (of either meiosis I or II) is called what, and what does it lead to?",
+        "Which term describes a meiotic error where chromosomes fail to separate properly, resulting in gametes with an abnormal chromosome number (aneuploidy)?"
+      ],
+      choiceSets: [
+        { correct: "Nondisjunction — chromosomes fail to separate correctly during anaphase, leading to gametes with too many or too few chromosomes (aneuploidy)", distractors: ["Crossing over — chromosomes exchange segments, leading to gametes with balanced chromosome numbers", "Cytokinesis — the cytoplasm divides unevenly, but chromosome number remains normal", "Independent assortment — chromosomes are randomly oriented, but always end up with correct numbers"] },
+        { correct: "Nondisjunction, which can occur in meiosis I or II and results in gametes with an abnormal number of chromosomes", distractors: ["Anaphase lag, which always results in a perfectly balanced translocation", "Reciprocal translocation, which never affects chromosome count, only structure", "Robertsonian translocation, which only happens during mitosis, not meiosis"] }
+      ],
+      explanation: `
+        <ul>
+          <li><b>Nondisjunction</b> is the <b>failure of chromosomes to separate correctly during anaphase</b> — this can happen in either <b>meiosis I or meiosis II</b>.</li>
+          <li>The result is gametes with <b>too many or too few chromosomes</b> — a condition called <b>aneuploidy</b>.</li>
+          <li>Common disorders caused by errors in chromosome <i>number</i> (like nondisjunction) include <b>trisomies</b> such as Down syndrome, Edwards syndrome, and Patau syndrome.</li>
+          <li>A related error is <b>anaphase lag</b>, where a chromosome lags behind during division and fails to be included in either resulting nucleus, also resulting in missing genetic material.</li>
+          <li>This is distinct from <b>translocations</b>, which are errors in chromosome <i>structure</i> (segments rearranged), not number.</li>
+        </ul>
+      `
+    },
+    {
+      templates: [
+        "What is the difference between a reciprocal translocation and a Robertsonian translocation?",
+        "Two types of chromosomal structural translocations exist. How does the exchange of segments between two non-homologous chromosomes (reciprocal) differ from the fusion of two acrocentric chromosomes at the centromere (Robertsonian)?",
+        "Which type of translocation involves the fusion of two acrocentric chromosomes at the centromere, as opposed to an exchange of segments between two non-homologous chromosomes?"
+      ],
+      choiceSets: [
+        { correct: "Reciprocal translocation involves an exchange of segments between two non-homologous chromosomes; Robertsonian translocation involves the fusion of two acrocentric chromosomes at the centromere", distractors: ["Reciprocal translocation involves fusion at the centromere; Robertsonian translocation involves segment exchange between non-homologous chromosomes", "Both types of translocation are identical and only differ by which chromosome pair is involved", "Reciprocal translocation only occurs in gametes; Robertsonian translocation only occurs in somatic cells"] },
+        { correct: "Reciprocal = segment exchange between two non-homologous chromosomes; Robertsonian = fusion of two acrocentric chromosomes at their centromeres", distractors: ["Reciprocal = loss of an entire chromosome; Robertsonian = duplication of an entire chromosome", "Reciprocal = error in chromosome number; Robertsonian = error during cytokinesis only", "Reciprocal and Robertsonian both refer to the same nondisjunction event, just at different meiotic phases"] }
+      ],
+      explanation: `
+        <ul>
+          <li>Both are types of <b>chromosomal structural abnormalities</b> (errors in chromosome <i>structure</i>, as opposed to nondisjunction, which is an error in chromosome <i>number</i>).</li>
+          <li><b>Reciprocal translocation:</b> involves the <b>exchange of chromosome segments between two non-homologous chromosomes</b>.</li>
+          <li><b>Robertsonian translocation:</b> involves the <b>fusion of two acrocentric chromosomes at the centromere</b>.</li>
+          <li>Translocations can be <b>balanced</b> (no genetic material lost or gained — often no symptoms) or <b>unbalanced</b> (material lost or gained — can cause developmental issues or miscarriage).</li>
+        </ul>
+      `
+    }
+  ]
+
+};
+</script>
+
+<script>
+/* ============================================================
+   APP STATE & LOGIC
+============================================================ */
+
+const TOPIC_ORDER = Object.keys(QUESTION_BANK);
+
+let state = {
+  selectedTopics: new Set(),
+  questions: [],       // generated quiz questions for this run
+  current: 0,
+  correctCount: 0,
+  answers: []           // {topic, questionText, choices, correctIndex, chosenIndex, explanation, originalIndex}
+};
+
+// ---------- shuffle helper (Fisher-Yates) ----------
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+function pickRandom(arr){
+  return arr[Math.floor(Math.random()*arr.length)];
+}
+
+// ---------- build splash topic list ----------
+function renderTopicList(){
+  const list = document.getElementById('topicList');
+  list.innerHTML = '';
+  TOPIC_ORDER.forEach(topic=>{
+    const count = QUESTION_BANK[topic].length;
+    const item = document.createElement('div');
+    item.className = 'topic-item';
+    item.dataset.topic = topic;
+    item.innerHTML = `
+      <div class="topic-checkbox">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+      </div>
+      <div class="topic-info">
+        <div class="topic-name">${topic}</div>
+        <div class="topic-count">${count} question${count!==1?'s':''} in the bank</div>
+      </div>
+    `;
+    item.addEventListener('click', ()=>{
+      if(state.selectedTopics.has(topic)){
+        state.selectedTopics.delete(topic);
+        item.classList.remove('active');
+      } else {
+        state.selectedTopics.add(topic);
+        item.classList.add('active');
+      }
+      updateStartButton();
+      playClickSound();
+    });
+    list.appendChild(item);
+  });
+}
+
+function updateStartButton(){
+  const btn = document.getElementById('startBtn');
+  const hint = document.getElementById('hintMsg');
+  if(state.selectedTopics.size === 0){
+    btn.disabled = true;
+  } else {
+    btn.disabled = false;
+    hint.textContent = '';
+  }
+  // update select all label
+  const selectAllBtn = document.getElementById('selectAllBtn');
+  if(state.selectedTopics.size === TOPIC_ORDER.length){
+    selectAllBtn.textContent = 'Deselect all';
+  } else {
+    selectAllBtn.textContent = 'Select all';
+  }
+}
+
+document.getElementById('selectAllBtn').addEventListener('click', ()=>{
+  const allSelected = state.selectedTopics.size === TOPIC_ORDER.length;
+  document.querySelectorAll('.topic-item').forEach(item=>{
+    if(allSelected){
+      state.selectedTopics.delete(item.dataset.topic);
+      item.classList.remove('active');
+    } else {
+      state.selectedTopics.add(item.dataset.topic);
+      item.classList.add('active');
+    }
+  });
+  updateStartButton();
+  playClickSound();
+});
+
+document.getElementById('startBtn').addEventListener('click', ()=>{
+  if(state.selectedTopics.size === 0){
+    document.getElementById('hintMsg').textContent = 'Please select at least one topic to continue.';
+    return;
+  }
+  buildQuiz();
+  showScreen('quiz');
+  renderQuestion();
+});
+
+// ---------- build the quiz question set ----------
+function buildQuiz(){
+  state.questions = [];
+  state.current = 0;
+  state.correctCount = 0;
+  state.answers = [];
+
+  state.selectedTopics.forEach(topic=>{
+    const bank = QUESTION_BANK[topic];
+    bank.forEach((q, idx)=>{
+      const template = pickRandom(q.templates);
+      const choiceSet = pickRandom(q.choiceSets);
+
+      // build choice list: correct + distractors, then shuffle
+      const allChoices = [
+        { text: choiceSet.correct, isCorrect: true },
+        ...choiceSet.distractors.map(d=>({ text: d, isCorrect: false }))
+      ];
+      const shuffledChoices = shuffle(allChoices);
+
+      state.questions.push({
+        topic: topic,
+        originalIndex: idx + 1,    // "true original exam number" within its topic
+        questionText: template,
+        choices: shuffledChoices,
+        explanation: q.explanation
+      });
+    });
+  });
+
+  // shuffle question order across the whole quiz
+  state.questions = shuffle(state.questions);
+}
+
+// ---------- render question ----------
+function renderQuestion(){
+  const q = state.questions[state.current];
+  const total = state.questions.length;
+
+  document.getElementById('progressInfo').textContent = `Question ${state.current+1} of ${total}`;
+  document.getElementById('scorePill').innerHTML = `✓ ${state.correctCount} correct`;
+  document.getElementById('progressFill').style.width = `${(state.current/total)*100}%`;
+  document.getElementById('topicTag').textContent = q.topic;
+  document.getElementById('questionText').innerHTML = q.questionText;
+
+  const choicesList = document.getElementById('choicesList');
+  choicesList.innerHTML = '';
+  const letters = ['A','B','C','D'];
+
+  q.choices.forEach((choice, i)=>{
+    const btn = document.createElement('button');
+    btn.className = 'choice';
+    btn.innerHTML = `<span class="letter">${letters[i]}</span><span>${choice.text}</span>`;
+    btn.addEventListener('click', ()=> handleAnswer(i));
+    choicesList.appendChild(btn);
+  });
+
+  // reset feedback/next
+  const fb = document.getElementById('feedbackBox');
+  fb.classList.remove('show','correct-fb');
+  document.getElementById('nextBtnRow').classList.remove('show');
+}
+
+function handleAnswer(chosenIndex){
+  const q = state.questions[state.current];
+  const choices = document.querySelectorAll('#choicesList .choice');
+
+  // disable all
+  choices.forEach(c=> c.classList.add('disabled'));
+  choices.forEach(c=> c.onclick = null);
+
+  const correctIndex = q.choices.findIndex(c=>c.isCorrect);
+  const isCorrect = chosenIndex === correctIndex;
+
+  // visually mark
+  choices[correctIndex].classList.add('correct');
+  if(!isCorrect){
+    choices[chosenIndex].classList.add('wrong');
+  }
+
+  // update score
+  if(isCorrect) state.correctCount++;
+
+  // store answer record
+  state.answers.push({
+    topic: q.topic,
+    originalIndex: q.originalIndex,
+    questionText: q.questionText,
+    choices: q.choices,
+    correctIndex: correctIndex,
+    chosenIndex: chosenIndex,
+    isCorrect: isCorrect,
+    explanation: q.explanation
+  });
+
+  // play sound
+  if(isCorrect){
+    playCorrectSound();
+  } else {
+    playWrongSound();
+  }
+
+  // show feedback
+  const fb = document.getElementById('feedbackBox');
+  const title = document.getElementById('feedbackTitle');
+  const body = document.getElementById('feedbackBody');
+
+  if(isCorrect){
+    fb.classList.add('show','correct-fb');
+    title.textContent = '✓ Correct!';
+    body.innerHTML = `<p style="margin:0;">Nicely done — that's the right answer.</p>`;
+  } else {
+    fb.classList.add('show');
+    fb.classList.remove('correct-fb');
+    title.textContent = "✗ Not quite — here's why";
+    body.innerHTML = q.explanation;
+  }
+
+  // update score pill + progress
+  document.getElementById('scorePill').innerHTML = `✓ ${state.correctCount} correct`;
+
+  // show next button
+  const nextRow = document.getElementById('nextBtnRow');
+  nextRow.classList.add('show');
+
+  const nextBtn = document.getElementById('nextBtn');
+  nextBtn.textContent = (state.current === state.questions.length - 1) ? 'See results →' : 'Next question →';
+}
+
+document.getElementById('nextBtn').addEventListener('click', ()=>{
+  playClickSound();
+  state.current++;
+  if(state.current >= state.questions.length){
+    document.getElementById('progressFill').style.width = '100%';
+    showResults();
+    showScreen('results');
+  } else {
+    renderQuestion();
+  }
+});
+
+// ---------- results ----------
+function showResults(){
+  playCompleteSound();
+
+  const total = state.answers.length;
+  const correct = state.correctCount;
+  const pct = Math.round((correct/total)*100);
+
+  document.getElementById('resultsScore').textContent = `${correct}/${total}`;
+  document.getElementById('resultsScoreLabel').textContent = `questions correct (${pct}%)`;
+
+  // overall message
+  let msg;
+  if(pct >= 90) msg = "Excellent work — that's mastery-level recall and understanding across these topics. 🌷";
+  else if(pct >= 75) msg = "Solid performance! You've got a strong handle on most of this material, with just a few gaps to close.";
+  else if(pct >= 50) msg = "A fair foundation, but there's clear room to deepen your understanding — focus on the weaker topics below.";
+  else msg = "This is a good starting point for review. Go through the explanations carefully — they'll help the concepts click.";
+  document.getElementById('resultsMessage').textContent = msg;
+
+  // per-topic breakdown
+  const topicStats = {};
+  state.answers.forEach(a=>{
+    if(!topicStats[a.topic]) topicStats[a.topic] = { correct:0, total:0 };
+    topicStats[a.topic].total++;
+    if(a.isCorrect) topicStats[a.topic].correct++;
+  });
+
+  const topicBars = document.getElementById('topicBars');
+  topicBars.innerHTML = '';
+  // sort: keep original topic order but only those quizzed
+  TOPIC_ORDER.filter(t=>topicStats[t]).forEach(topic=>{
+    const stat = topicStats[topic];
+    const tpct = Math.round((stat.correct/stat.total)*100);
+    let fillClass = 'fill-strong';
+    if(tpct < 50) fillClass = 'fill-weak';
+    else if(tpct < 80) fillClass = 'fill-mid';
+
+    const row = document.createElement('div');
+    row.className = 'topic-bar-row';
+    row.innerHTML = `
+      <div class="topic-bar-label">
+        <span>${topic}</span>
+        <span class="topic-bar-pct">${stat.correct}/${stat.total} · ${tpct}%</span>
+      </div>
+      <div class="topic-bar-track">
+        <div class="topic-bar-fill ${fillClass}" style="width:${tpct}%"></div>
+      </div>
+    `;
+    topicBars.appendChild(row);
+  });
+
+  // analysis
+  const analysisBody = document.getElementById('analysisBody');
+  analysisBody.innerHTML = '';
+
+  const sortedTopics = TOPIC_ORDER.filter(t=>topicStats[t]).map(t=>({
+    topic: t,
+    pct: Math.round((topicStats[t].correct/topicStats[t].total)*100),
+    ...topicStats[t]
+  })).sort((a,b)=> b.pct - a.pct);
+
+  const strongest = sortedTopics[0];
+  const weakest = sortedTopics[sortedTopics.length-1];
+
+  if(sortedTopics.length === 1){
+    const t = sortedTopics[0];
+    const p = document.createElement('p');
+    if(t.pct >= 75){
+      p.innerHTML = `You scored <span class="tag-good">${t.pct}%</span> on <b>${t.topic}</b> — you're in good shape on this topic. Review the explanations for any missed items to close the remaining gaps.`;
+    } else {
+      p.innerHTML = `You scored <span class="tag-bad">${t.pct}%</span> on <b>${t.topic}</b>. This topic needs more review — go through each explanation carefully, especially around the items you missed.`;
+    }
+    analysisBody.appendChild(p);
+  } else {
+    if(strongest.pct >= 70){
+      const p1 = document.createElement('p');
+      p1.innerHTML = `Your strongest area is <b>${strongest.topic}</b>, where you scored <span class="tag-good">${strongest.pct}%</span> (${strongest.correct}/${strongest.total}). This shows solid retention of the core concepts here.`;
+      analysisBody.appendChild(p1);
+    }
+
+    if(weakest.pct < 70 && weakest.topic !== strongest.topic){
+      const p2 = document.createElement('p');
+      p2.innerHTML = `<b>${weakest.topic}</b> could use more practice — you scored <span class="tag-bad">${weakest.pct}%</span> (${weakest.correct}/${weakest.total}). Focus your next review session here, especially on the explanations for items you got wrong.`;
+      analysisBody.appendChild(p2);
+    }
+
+    // mid-range topics getting close but not quite
+    const midTopics = sortedTopics.filter(t=> t.pct >= 50 && t.pct < 80 && t.topic !== weakest.topic && t.topic !== strongest.topic);
+    if(midTopics.length > 0){
+      const p3 = document.createElement('p');
+      const names = midTopics.map(t=>`<b>${t.topic}</b> (${t.pct}%)`).join(', ');
+      p3.innerHTML = `You're close but not fully solid on ${names} — a quick second pass on these should push them into your strong zone.`;
+      analysisBody.appendChild(p3);
+    }
+
+    if(pct === 100){
+      const p4 = document.createElement('p');
+      p4.innerHTML = `A perfect run across every topic you selected — that's a strong sign of overall retention. ✦`;
+      analysisBody.appendChild(p4);
+    }
+  }
+
+  // count repeated mistake patterns by topic (which specific original questions were wrong)
+  const wrongByTopic = {};
+  state.answers.forEach(a=>{
+    if(!a.isCorrect){
+      if(!wrongByTopic[a.topic]) wrongByTopic[a.topic] = [];
+      wrongByTopic[a.topic].push(a.originalIndex);
+    }
+  });
+  if(Object.keys(wrongByTopic).length > 0){
+    const p5 = document.createElement('p');
+    const parts = Object.entries(wrongByTopic).map(([topic, idxs])=>
+      `<b>${topic}</b> (${idxs.length} item${idxs.length>1?'s':''} missed)`
+    );
+    p5.innerHTML = `Items missed by topic: ${parts.join(', ')}. Use the answer review below to revisit each one — the explanations break down exactly where the reasoning goes.`;
+    analysisBody.appendChild(p5);
+  } else {
+    const p6 = document.createElement('p');
+    p6.innerHTML = `No incorrect answers this round — every item was answered correctly. 🌟`;
+    analysisBody.appendChild(p6);
+  }
+
+  // full review, sorted by topic then original exam number
+  const reviewList = document.getElementById('reviewList');
+  reviewList.innerHTML = '';
+
+  const sortedAnswers = state.answers.slice().sort((a,b)=>{
+    const topicCompare = TOPIC_ORDER.indexOf(a.topic) - TOPIC_ORDER.indexOf(b.topic);
+    if(topicCompare !== 0) return topicCompare;
+    return a.originalIndex - b.originalIndex;
+  });
+
+  sortedAnswers.forEach(a=>{
+    const item = document.createElement('div');
+    item.className = 'review-item ' + (a.isCorrect ? 'was-right' : 'was-wrong');
+
+    const correctChoice = a.choices[a.correctIndex];
+    const chosenChoice = a.choices[a.chosenIndex];
+
+    let answerLines = '';
+    if(a.isCorrect){
+      answerLines = `<div class="review-answer-line"><span class="icon-correct">✓</span> <span class="lab">Your answer:</span> ${chosenChoice.text}</div>`;
+    } else {
+      answerLines = `
+        <div class="review-answer-line"><span class="icon-wrong">✗</span> <span class="lab">Your answer:</span> ${chosenChoice.text}</div>
+        <div class="review-answer-line"><span class="icon-correct">✓</span> <span class="lab">Correct answer:</span> ${correctChoice.text}</div>
+      `;
+    }
+
+    item.innerHTML = `
+      <div class="review-q-num">${a.topic} · Q${a.originalIndex}</div>
+      <div class="review-q-text">${a.questionText}</div>
+      ${answerLines}
+    `;
+    reviewList.appendChild(item);
+  });
+}
+
+// ---------- restart ----------
+document.getElementById('retakeSameBtn').addEventListener('click', ()=>{
+  playClickSound();
+  buildQuiz();
+  showScreen('quiz');
+  renderQuestion();
+});
+
+document.getElementById('retakeNewBtn').addEventListener('click', ()=>{
+  playClickSound();
+  state.selectedTopics.clear();
+  document.querySelectorAll('.topic-item').forEach(item=> item.classList.remove('active'));
+  updateStartButton();
+  document.getElementById('hintMsg').textContent = '';
+  showScreen('splash');
+});
+
+// ---------- screen switching ----------
+function showScreen(name){
+  document.querySelectorAll('.screen').forEach(s=> s.classList.remove('active'));
+  document.getElementById(`screen-${name}`).classList.add('active');
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+// ---------- init ----------
+renderTopicList();
+updateStartButton();
+</script>
+
+</body>
+</html>
