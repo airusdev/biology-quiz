@@ -606,11 +606,75 @@
   @media (prefers-reduced-motion: reduce){
     *{ animation: none !important; transition: none !important; }
   }
+
+  /* ============ MUSIC TOGGLE ============ */
+  .music-toggle{
+    position: fixed;
+    top: 18px;
+    right: 18px;
+    z-index: 10;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1.5px solid var(--pink-soft);
+    background: #fff;
+    color: var(--pink-deep);
+    cursor: pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    box-shadow: 0 6px 18px -8px rgba(217,120,159,0.45);
+    transition: all 0.18s ease;
+  }
+  .music-toggle:hover{
+    transform: translateY(-1px) scale(1.04);
+    border-color: var(--pink);
+  }
+  .music-toggle svg{
+    width: 20px;
+    height: 20px;
+  }
+  .music-toggle .icon-muted{ display:none; }
+  .music-toggle.muted .icon-playing{ display:none; }
+  .music-toggle.muted .icon-muted{ display:flex; }
+  .music-toggle.playing svg{
+    animation: gentle-pulse 2.2s ease-in-out infinite;
+  }
+  @keyframes gentle-pulse{
+    0%,100%{ opacity:1; }
+    50%{ opacity:0.55; }
+  }
+  @media (max-width: 480px){
+    .music-toggle{
+      top: 12px;
+      right: 12px;
+      width: 38px;
+      height: 38px;
+    }
+    .music-toggle svg{ width:17px; height:17px; }
+  }
 </style>
 </head>
 <body>
 
 <div class="ambient" id="ambient"></div>
+
+<button class="music-toggle" id="musicToggle" aria-label="Toggle background music">
+  <svg class="icon-playing" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M9 18V5l12-2v13"></path>
+    <circle cx="6" cy="18" r="3"></circle>
+    <circle cx="18" cy="16" r="3"></circle>
+  </svg>
+  <svg class="icon-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M11 5L6 9H2v6h4l5 4V5z"></path>
+    <line x1="23" y1="9" x2="17" y2="15"></line>
+    <line x1="17" y1="9" x2="23" y2="15"></line>
+  </svg>
+</button>
+
+<audio id="bgMusic" loop>
+  <source src="ambient.mp3" type="audio/mpeg">
+</audio>
 
 <div class="app">
   <div class="card">
@@ -618,7 +682,7 @@
     <!-- SPLASH SCREEN -->
     <div class="screen active splash" id="screen-splash">
       <div class="eyebrow">Cell Biology · Practice Quiz</div>
-      <h1>Let's go through the basics, one cell at a time 🌸</s></h1>
+      <h1>Let's go through the basics, one cell at a time 🌸</h1>
       <p class="sub">Pick the topics you'd like to review. Questions and choices reshuffle and reword every time, so you can keep practicing without memorizing the order.</p>
 
       <div class="select-all-row">
@@ -771,108 +835,144 @@ function playCompleteSound(){
 <script>
 /* ============================================================
    QUESTION BANK
-   Each question has:
-   - topic: which section it belongs to
-   - templates: array of alternate phrasings of the stem (randomly picked each time)
-   - choiceSets: array of alternate phrasings of the {correct, distractors} set
-     (randomly picked each time, paired index-aligned with templates is NOT required —
-      we pick template and choiceSet independently for max variety)
-   - explanation: detailed wrong-answer explanation (HTML allowed, use <ul><li>)
+   Format per question:
+   variants: [ "Question stem | Correct answer | Wrong1,Wrong2,Wrong3", ... ]
+   explanation: HTML string shown when the user gets it wrong
+   Paste your questions below in this format.
 ============================================================ */
 
 const QUESTION_BANK = {
 
   "Cell Theory": [
     {
-      templates: [
-        "Who first introduced the term <b>\"cell\"</b> after observing the structure of cork under a microscope?",
-        "Which scientist coined the word <b>\"cell\"</b> when he examined thin slices of cork tissue and noticed they resembled tiny chambers?",
-        "The term <b>\"cell\"</b> was first used by which scientist, based on what he saw while studying cork under early microscopes?"
-      ],
-      choiceSets: [
-        { correct: "Robert Hooke", distractors: ["Antonie van Leeuwenhoek", "Matthias Schleiden", "Theodor Schwann"] },
-        { correct: "Robert Hooke, in 1665", distractors: ["Antonie van Leeuwenhoek, in 1674", "Matthias Schleiden, in 1838", "Robert Brown, in 1833"] }
+      variants: [
+        "Who coined the term 'cell' after observing cork tissue under a microscope? | Robert Hooke | Antonie van Leeuwenhoek,Matthias Schleiden,Theodor Schwann",
+        "Which scientist introduced the word 'cell' in 1665? | Robert Hooke | Robert Brown,Antonie van Leeuwenhoek,Ernst Abbe",
+        "The term 'cell' was inspired by what comparison? | Monks' rooms | Prison cells,Beehives,Plant pores"
       ],
       explanation: `
         <ul>
-          <li><b>Robert Hooke</b> examined cork tissue in 1665 and described the empty box-like compartments he saw, naming them "cells" because they reminded him of the small rooms (cells) occupied by monks.</li>
-          <li>He did not see living contents — just the empty cell walls of dead cork tissue.</li>
-          <li><b>Leeuwenhoek</b> came later (1670s) and was the first to observe living cells, like blood cells and microorganisms ("animalcules").</li>
-          <li><b>Schleiden and Schwann</b> are credited with formally proposing cell theory in 1838–1839, almost 200 years after Hooke's observation.</li>
+          <li><b>Robert Hooke</b> examined cork tissue in 1665 and named the empty box-like compartments "cells" because they reminded him of the small rooms occupied by monks.</li>
+          <li>He only saw the empty cell walls of dead cork tissue, not living contents.</li>
+          <li>Leeuwenhoek came later (1670s) and observed living cells. Schleiden and Schwann proposed cell theory in 1838–1839.</li>
         </ul>
       `
     },
     {
-      templates: [
-        "Which two scientists are credited with formally proposing <b>cell theory</b> in the late 1830s, stating that cells are the basic unit of all living things?",
-        "Cell theory — the idea that all plants and animals are composed of cells — was formally proposed in 1838–1839 by which pair of scientists?",
-        "Which two German scientists stated that cells are the \"elementary particles\" of both plants and animals, unifying botany and zoology under one framework?"
-      ],
-      choiceSets: [
-        { correct: "Matthias Schleiden and Theodor Schwann", distractors: ["Robert Hooke and Robert Brown", "Antonie van Leeuwenhoek and Robert Hooke", "Robert Brown and Theodor Schwann"] },
-        { correct: "Theodor Schwann and Matthias Jakob Schleiden", distractors: ["Robert Brown and Robert Hooke", "Antonie van Leeuwenhoek and Matthias Schleiden", "Ernst Abbe and Robert Hooke"] }
+      variants: [
+        "Which two scientists formally proposed cell theory in 1838–1839? | Matthias Schleiden and Theodor Schwann | Robert Hooke and Robert Brown,Antonie van Leeuwenhoek and Robert Hooke,Alexander Braun and Ernst Abbe",
+        "Cell theory — that all plants and animals are made of cells — was proposed by which pair? | Schleiden and Schwann | Hooke and Leeuwenhoek,Brown and Schwann,Bacon and Fracastoro",
+        "Which German scientists called cells the 'elementary particles of organisms'? | Schleiden and Schwann | Jansen and Lippershey,Lister and Abbe,Brown and Hooke"
       ],
       explanation: `
         <ul>
-          <li><b>Matthias Schleiden</b> (a botanist) studied plant tissue and concluded all plant tissues are made of cells.</li>
-          <li><b>Theodor Schwann</b> (a physiologist and Schleiden's friend) extended this idea to animal tissues.</li>
-          <li>Together in 1838–1839, they proposed that cells are the basic structural units of <i>all</i> living organisms — both unicellular and multicellular.</li>
-          <li><b>Robert Hooke</b> only named the cell (1665) but did not propose a unifying theory. <b>Robert Brown</b> identified the nucleus (1833), a separate contribution.</li>
+          <li><b>Matthias Schleiden</b> (botanist) studied plant tissue and concluded all plants consist of cells.</li>
+          <li><b>Theodor Schwann</b> (physiologist, Schleiden's friend) extended this to animals.</li>
+          <li>Together in 1838–1839, they proposed cells are the basic units of all living organisms.</li>
         </ul>
       `
     },
     {
-      templates: [
-        "What structure did <b>Robert Brown</b> identify in 1833 as a constant component of plant cells, a discovery that helped pave the way for cell theory?",
-        "In 1833, which cellular structure was first observed and described as a regular feature of plant cells by Scottish botanist Robert Brown?",
-        "Robert Brown's 1833 observation of a constant structure in plant cells — later named by him in 1831 — refers to which organelle?"
-      ],
-      choiceSets: [
-        { correct: "The nucleus", distractors: ["The cell wall", "The chloroplast", "The mitochondrion"] },
-        { correct: "The nucleus", distractors: ["The vacuole", "The Golgi apparatus", "Protoplasm"] }
+      variants: [
+        "What structure did Robert Brown identify as a constant component of plant cells in 1833? | The nucleus | The cell wall,The chloroplast,Protoplasm",
+        "Which scientist coined the term 'nucleus' in 1831? | Robert Brown | Robert Hooke,Theodor Schwann,Matthias Schleiden",
+        "The observation of what organelle in 1833 was critical to the development of cell theory? | Nucleus | Mitochondrion,Golgi apparatus,Endoplasmic reticulum"
       ],
       explanation: `
         <ul>
-          <li><b>Robert Brown</b> observed the <b>nucleus</b> as a constant component of plant cells in 1833, and he is credited with naming it.</li>
-          <li>This was one of three critical discoveries in the 1830s (alongside the recognition of the nucleus in animal cells, and the discovery of "protoplasm") that led directly to the formulation of cell theory.</li>
-          <li>Before this, cells were thought of as empty pores in plant tissue — Brown's discovery showed they contained consistent internal structures.</li>
+          <li><b>Robert Brown</b> observed the <b>nucleus</b> as a constant component of plant cells in 1833 and coined the term in 1831.</li>
+          <li>This was one of three critical 1830s discoveries (along with nucleus in animal cells and protoplasm) that led to cell theory.</li>
         </ul>
       `
     },
     {
-      templates: [
-        "What invention in the 16th century directly enabled the discovery and study of cells, sparking interest in the \"invisible world\"?",
-        "Which technological development was the key turning point that allowed scientists to begin observing cells for the first time?",
-        "The history of cell theory really begins with the invention of which instrument in the 16th century?"
-      ],
-      choiceSets: [
-        { correct: "The microscope", distractors: ["The telescope", "The centrifuge", "The spectroscope"] },
-        { correct: "The microscope", distractors: ["The barometer", "The X-ray machine", "The electron beam imager"] }
+      variants: [
+        "What invention in the 16th century enabled the first observation of cells? | The microscope | The telescope,The centrifuge,The spectroscope",
+        "Which technological development sparked interest in the 'invisible world' and allowed cell discovery? | Microscope | Electron microscope,Camera obscura,Barometer",
+        "The decisive event allowing cell observation was the invention of what instrument? | Microscope | Compound microscope,Simple magnifying glass,Light bulb"
       ],
       explanation: `
         <ul>
-          <li>The <b>microscope</b>, invented in the 16th century, was the decisive event that allowed direct observation of cells for the first time.</li>
-          <li>Before microscopes, all theories about the basic units of life were speculation — "early prediction and speculation about the nature of the cell were generally unsuccessful."</li>
-          <li>It took nearly 200 more years after the invention of the microscope before cell theory was formally proposed (1838), due to limited lens quality and persistent older ideas about what counted as a "fundamental living unit."</li>
+          <li>The <b>microscope</b>, invented in the 16th century, was the decisive event enabling cell observation.</li>
+          <li>Before microscopes, theories about cells were speculation. It took ~200 years after microscope invention for cell theory to form (1838).</li>
         </ul>
       `
     },
     {
-      templates: [
-        "Antonie van Leeuwenhoek's microscopic observations in the 1670s led to the discovery of which previously unseen group of organisms?",
-        "What did Antonie van Leeuwenhoek discover when he began observing freshwater samples with his hand-made single-lens microscopes starting in 1673–1674?",
-        "Leeuwenhoek's pioneering microscopy work in the 1670s revealed an entire world of what he called \"animalcules\" — what does this term refer to?"
-      ],
-      choiceSets: [
-        { correct: "Unicellular microorganisms (e.g., bacteria, protists)", distractors: ["Plant cell walls", "Mitochondria inside muscle cells", "Chromosomes during cell division"] },
-        { correct: "Single-celled living organisms, including blood cells and microbes", distractors: ["The structure of the cell nucleus", "Photosynthetic pigments in chloroplasts", "The process of mitosis"] }
+      variants: [
+        "What did Antonie van Leeuwenhoek discover in the 1670s using his hand-made microscopes? | Unicellular microorganisms | Plant cell walls,The cell nucleus,Mitochondria",
+        "Leeuwenhoek's observations of 'animalcules' referred to what? | Single-celled living organisms | Dead plant tissue,Inorganic particles,Human blood cells only",
+        "Which scientist effectively launched microbiology in 1674? | Antonie van Leeuwenhoek | Robert Hooke,Robert Brown,Theodor Schwann"
       ],
       explanation: `
         <ul>
-          <li>Leeuwenhoek discovered <b>unicellular organisms</b> — what he called "animalcules" — including bacteria, protists, blood cells, and spermatozoa.</li>
-          <li>This greatly expanded the known variety of living things, but at the time it did not lead to insight into the basic <i>uniformity</i> of all life (i.e., it didn't directly produce cell theory).</li>
-          <li>Notably, Leeuwenhoek observed these organisms swarming but failed to observe them dividing, which actually reinforced the (incorrect) idea that they arose spontaneously.</li>
-          <li>The unifying idea — that cells are the basic unit of <i>all</i> life — came later, from Schleiden and Schwann (1838–1839).</li>
+          <li><b>Leeuwenhoek</b> discovered unicellular organisms ("animalcules"), blood cells, and spermatozoa starting in 1673–1674.</li>
+          <li>He made postage-stamp-sized microscopes by hand that resolved ~0.7 μm.</li>
+          <li>However, he failed to observe cell division, reinforcing the incorrect idea of spontaneous generation.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "Why did cell theory take nearly 200 years to formulate after microscopy began? | Poor microscope quality and persistence of old ideas | Lack of interest in biology,No scientists existed,Cells were too small to see",
+        "What precluded study of cell contents in early microscopy? | Poor magnifying power and inadequate preparation techniques | Scientists refused to look,Cells didn't exist yet,The sun was too bright",
+        "Which three discoveries in the 1830s were decisive for cell theory? | Nucleus in plants, nucleus in animals, protoplasm | Microscope invention, cork observation, blood cells,Mitosis, meiosis, cytokinesis"
+      ],
+      explanation: `
+        <ul>
+          <li>Cell theory took ~200 years due to poor microscope quality and persistence of ancient ideas about living units.</li>
+          <li>Three 1830s discoveries were decisive: (1) nucleus in plant cells (Brown, 1833), (2) nucleus in animal cells, (3) protoplasm as living substance.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What did Schleiden state about lower vs. higher plants in 1838? | Lower plants have one cell, higher plants have many cells | All plants have one cell,All plants have many cells,Lower plants have no cells",
+        "According to Schleiden, lower plants consist of how many cells? | One cell | Two cells,Many cells,No cells",
+        "Schleiden's statement that 'the lower plants all consist of one cell' was made in what year? | 1838 | 1665,1833,1839"
+      ],
+      explanation: `
+        <ul>
+          <li>Schleiden stated in 1838 that "the lower plants all consist of one cell, while the higher ones are composed of (many) individual cells."</li>
+          <li>This was a key step toward recognizing cellular organization in all organisms.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What common features of cells did Schleiden and Schwann recognize? | Membrane, nucleus, and cell body | Wall, chloroplast, vacuole,Ribosomes, mitochondria, Golgi,DNA, RNA, proteins",
+        "Schwann's 1839 book comparing animal and plant structure was titled what? | Mikroskopische Untersuchungen... | Micrographia,Perspectiva,Homocentrica",
+        "Schleiden and Schwann recognized that organisms can be which two types? | Unicellular and multicellular | Prokaryotic and eukaryotic,Haploid and diploid,Autotrophic and heterotrophic"
+      ],
+      explanation: `
+        <ul>
+          <li>Schleiden and Schwann recognized common cell features: <b>membrane, nucleus, and cell body</b>.</li>
+          <li>Schwann's 1839 book was <i>Mikroskopische Untersuchungen über die Übereinstimmung in der Struktur und dem Wachstume der Tiere und Pflanzen</i>.</li>
+          <li>They recognized some organisms are unicellular, others multicellular.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What did Schleiden mean by 'Each cell leads a double life'? | Independent life + integral part of a plant | Day life + night life,Plant life + animal life,Single cell + multicellular",
+        "According to Schleiden, what must form the fundamental basis of physiology? | Vital process of individual cells | Tissue organization,Organ systems,Environmental factors"
+      ],
+      explanation: `
+        <ul>
+          <li>Schleiden stated each cell leads "an independent one, pertaining to its own development alone; and another incidental, insofar as it has become an integral part of a plant."</li>
+          <li>He emphasized that the vital process of individual cells is the "first, absolutely indispensable fundamental basis" of physiology.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What is cell theory according to the material? | Fundamental scientific theory that cells are basic units of all living tissues | Theory that all cells are identical,Theory that cells only exist in plants,Theory that cells are made of DNA only",
+        "Cell theory resulted in renewed attention to what? | Living processes in cells | Dead cell walls,Microscope manufacturing,Plant breeding"
+      ],
+      explanation: `
+        <ul>
+          <li>Cell theory is the fundamental scientific theory that <b>cells are the basic units of all living tissues</b>.</li>
+          <li>It resulted in renewed attention to the living processes that go on in cells.</li>
         </ul>
       `
     }
@@ -880,58 +980,277 @@ const QUESTION_BANK = {
 
   "Microscopes": [
     {
-      templates: [
-        "Which type of microscope uses a beam of electrons rather than light, and can achieve magnifications of over 1,000,000×?",
-        "A magnifying power exceeding 1,000,000× is characteristic of which type of microscope, which forms images of thin specimens in a near vacuum?",
-        "Which microscope type uses electron beams instead of glass lenses and light, allowing it to image extremely thin sectioned specimens at extremely high magnification?"
-      ],
-      choiceSets: [
-        { correct: "Transmission electron microscope (TEM)", distractors: ["Compound light microscope", "Scanning electron microscope (SEM)", "Simple microscope (loupe)"] },
-        { correct: "The transmission electron microscope (TEM)", distractors: ["The scanning tunneling microscope (STM)", "The phase-contrast microscope", "The simple magnifying glass"] }
+      variants: [
+        "What is the primary function of a microscope? | Produces enlarged images of small objects | Measures cell temperature,Creates chemical reactions,Splits light into colors",
+        "A microscope allows observation of structures at what kind of scale? | Convenient for examination and analysis | Life-size only,Smaller than atoms only,Only visible light scale"
       ],
       explanation: `
         <ul>
-          <li>The <b>transmission electron microscope (TEM)</b> has magnifying powers of more than 1,000,000× and forms images of thin sectioned specimens in a near vacuum.</li>
-          <li>The <b>scanning electron microscope (SEM)</b> usually has a <i>lower</i> resolution than the TEM but is useful for imaging solid surfaces and relief/contour, which a TEM cannot do.</li>
-          <li>A <b>compound light microscope</b> can magnify up to about 2,000× — vastly less than a TEM.</li>
-          <li>A <b>simple microscope</b> (single lens, like a magnifying glass) can magnify up to about 300×.</li>
+          <li>A <b>microscope</b> is an instrument that produces enlarged images of small objects, allowing close view of minute structures.</li>
         </ul>
       `
     },
     {
-      templates: [
-        "What does \"resolution\" refer to when describing the capability of a microscope?",
-        "In microscopy, the term \"resolution\" specifically describes which property of the instrument?",
-        "Which of the following best defines the resolution of a microscope?"
-      ],
-      choiceSets: [
-        { correct: "The smallest detail of an object that can still be observed, usually measured in micrometres", distractors: ["The total number of times an object appears enlarged", "The amount of light the lens can let through", "The distance between the eyepiece and the objective lens"] },
-        { correct: "A measure of the smallest distinguishable detail of a specimen, expressed in linear units like micrometres", distractors: ["The ratio describing how many times larger the image appears compared to the object", "The maximum depth of field a lens can achieve", "The speed at which an image can be captured digitally"] }
+      variants: [
+        "What does magnifying power express? | Number of times an object appears enlarged | Weight of the object,Color of the object,Speed of light through the lens",
+        "How is magnifying power correctly expressed? | 10× (ten times) | Ten eks,10 meters,10 percent",
+        "Magnifying power is what type of ratio? | Dimensionless | Linear,Volume,Mass"
       ],
       explanation: `
         <ul>
-          <li><b>Resolution</b> is the measure of the smallest detail of an object that can still be observed — it's expressed in linear units, usually <b>micrometres (μm)</b>.</li>
-          <li><b>Magnification</b>, by contrast, is a dimensionless ratio expressing how many times larger an object appears (e.g., 10×) — this is a different concept from resolution.</li>
-          <li>For reference: a simple (single-lens) microscope can resolve below 1 μm, while a compound microscope can resolve down to about 0.2 μm.</li>
-          <li>A microscope can have high magnification but poor resolution — magnifying a blurry image just makes a bigger blur.</li>
+          <li><b>Magnifying power</b> is a dimensionless ratio expressing how many times an object appears enlarged (e.g., 10×, correctly spoken as "ten times").</li>
         </ul>
       `
     },
     {
-      templates: [
-        "A scanning electron microscope (SEM) is especially useful for which of the following, compared to a transmission electron microscope (TEM)?",
-        "What is a key advantage of an SEM over a TEM, even though the SEM typically has lower resolution?",
-        "Why might a researcher choose an SEM instead of a TEM despite the SEM's generally lower resolving power?"
-      ],
-      choiceSets: [
-        { correct: "It can show solid surfaces and contours/relief in a way the TEM cannot", distractors: ["It can magnify specimens over 1,000,000×", "It requires the specimen to be sliced into extremely thin sections", "It can only be used on living, moving cells"] },
-        { correct: "It produces a reflected image of a contoured, solid specimen's surface", distractors: ["It achieves higher magnification than any electron microscope", "It works without needing any vacuum environment", "It eliminates the need for any image processing"] }
+      variants: [
+        "What does resolution of a microscope measure? | Smallest detail that can be observed | Brightness of the image,Speed of focusing,Size of the lens",
+        "Resolution is expressed in what units? | Micrometres (μm) | Millimeters,Nanometers only,Magnification power",
+        "A compound microscope can resolve down to approximately what value? | 0.2 μm | 1 μm,0.7 μm,2 μm"
       ],
       explanation: `
         <ul>
-          <li>An <b>SEM</b> creates a <i>reflected</i> image of the relief/contour of a solid specimen — it's good for showing surface detail.</li>
-          <li>A <b>TEM</b> requires very thin sections (the beam passes <i>through</i> the specimen) and achieves much higher magnification (over 1,000,000×) but cannot show surface topology the way an SEM can.</li>
-          <li>So the trade-off is: TEM = higher magnification, internal detail of thin sections; SEM = lower resolution, but reveals 3D-like surface structure.</li>
+          <li><b>Resolution</b> measures the smallest detail observable, expressed in <b>micrometres (μm)</b>.</li>
+          <li>Simple microscope resolves below 1 μm; compound microscope resolves to ~0.2 μm.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What type of lenses does an optical microscope use? | Glass lenses | Plastic lenses,Electron beams,Laser beams",
+        "The most familiar type of microscope is the what? | Optical or light microscope | Electron microscope,Scanning microscope,Atomic microscope",
+        "Optical microscopes can be simple or what? | Compound | Digital,Electron,Phase-contrast"
+      ],
+      explanation: `
+        <ul>
+          <li>The most familiar type is the <b>optical (light) microscope</b>, using <b>glass lenses</b>.</li>
+          <li>It can be <b>simple</b> (single lens) or <b>compound</b> (several optical components in line).</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What is the maximum magnification of a simple microscope? | Up to 300× | Up to 20×,Up to 2,000×,Up to 1,000,000×",
+        "What is the maximum magnification of a compound microscope? | Up to 2,000× | Up to 300×,Up to 10,000×,Up to 50,000×",
+        "A hand magnifying glass can magnify about how much? | 3 to 20× | 1 to 5×,50 to 100×,200 to 300×"
+      ],
+      explanation: `
+        <ul>
+          <li>Hand magnifying glass: ~3–20×. Simple microscope: up to <b>300×</b>. Compound microscope: up to <b>2,000×</b>.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What is photomicrography? | Photography through a microscope | Drawing cells by hand,Measuring cell size,Staining tissue samples",
+        "What technique has largely replaced film for capturing microscope images? | Digital imaging | Oil painting,Sketching,Video recording only"
+      ],
+      explanation: `
+        <ul>
+          <li><b>Photomicrography</b> is photography through a microscope. Digital imaging has largely replaced film.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "Which microscope type has magnifying powers exceeding 1,000,000×? | Transmission electron microscope (TEM) | Scanning electron microscope,Compound light microscope,Simple microscope",
+        "TEMs form images of specimens in what environment? | Near vacuum | Air,Water,Liquid nitrogen",
+        "What type of specimens do TEMs image? | Thin sections | Solid surfaces,Living cells,Whole organisms"
+      ],
+      explanation: `
+        <ul>
+          <li>The <b>transmission electron microscope (TEM)</b> has magnifying powers of <b>more than 1,000,000×</b> and forms images of thin specimens in a <b>near vacuum</b>.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What is a key advantage of SEM over TEM despite lower resolution? | Shows solid surfaces and relief | Higher magnification,Images living cells,Requires no vacuum",
+        "SEM creates what type of image? | Reflected image of relief in contoured specimens | Transmitted image of thin sections,Image of atoms only,Image of internal structures",
+        "Compared to TEM, SEM typically has what? | Lower resolution | Higher resolution,Same resolution,No resolution difference"
+      ],
+      explanation: `
+        <ul>
+          <li>The <b>scanning electron microscope (SEM)</b> creates a <b>reflected image of relief</b> in contoured specimens.</li>
+          <li>It usually has <b>lower resolution</b> than TEM but can show solid surfaces TEM cannot.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "Which microscope can create images of atoms? | Scanning tunneling microscope (STM) | TEM,SEM,Optical microscope",
+        "ESEM generates images using electrons of specimens in what environment? | Gaseous environment | Near vacuum,Liquid,Complete vacuum",
+        "Which microscope uses sound waves? | Acoustic microscope | Electron microscope,X-ray microscope,Light microscope"
+      ],
+      explanation: `
+        <ul>
+          <li>The <b>scanning tunneling microscope (STM)</b> can create images of atoms.</li>
+          <li>The <b>environmental scanning electron microscope (ESEM)</b> generates images using electrons of specimens in a <b>gaseous environment</b>.</li>
+          <li>Other microscopes use acoustic, X-ray, or electron beams.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "Which English philosopher wrote about magnification around 1267? | Roger Bacon | Robert Hooke,Francis Bacon,Isaac Newton",
+        "In what work did Roger Bacon discuss magnification? | Perspectiva | Micrographia,Homocentrica,Opticks"
+      ],
+      explanation: `
+        <ul>
+          <li>About <b>1267</b>, English philosopher <b>Roger Bacon</b> wrote in <i>Perspectiva</i> about seeing small particles through great angles.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "Which Italian physician wrote about two superimposed spectacle glasses in 1538? | Girolamo Fracastoro | Galileo Galilei,Leonardo da Vinci,Andreas Vesalius",
+        "Fracastoro's 1538 work discussing magnification was titled what? | Homocentrica | Perspectiva,De Revolutionibus,Micrographia"
+      ],
+      explanation: `
+        <ul>
+          <li>In <b>1538</b>, Italian physician <b>Girolamo Fracastoro</b> wrote in <i>Homocentrica</i> about looking through two superimposed spectacle glasses to see things larger.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "Which three Dutch spectacle makers are credited with inventing the compound microscope around 1590? | Hans Jansen, Zacharias Jansen, Hans Lippershey | Leeuwenhoek, Hooke, Brown,Abbe, Lister, Martin,Schleiden, Schwann, Braun",
+        "The compound microscope was invented around what year? | 1590 | 1631,1665,1733",
+        "The first portrayal of a microscope was drawn around what year? | 1631 | 1590,1665,1733"
+      ],
+      explanation: `
+        <ul>
+          <li>Three Dutch spectacle makers — <b>Hans Jansen, Zacharias Jansen, and Hans Lippershey</b> — invented the compound microscope about <b>1590</b>.</li>
+          <li>The first portrayal was drawn about <b>1631</b> in the Netherlands.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "In what year did Robert Hooke publish Micrographia? | 1665 | 1631,1674,1830",
+        "What did Hooke introduce in Micrographia? | The term 'cell' | The term 'nucleus',The theory of evolution,The law of gravity",
+        "Micrographia contained microscopic views of which familiar objects? | Fleas, lice, and nettles | Only plant cells,Only animal cells,Only bacteria"
+      ],
+      explanation: `
+        <ul>
+          <li>In <b>1665</b>, Hooke published <i>Micrographia</i>, introducing the term <b>"cell"</b> and showing microscopic views of fleas, lice, nettles, and more.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "How large were Leeuwenhoek's hand-made microscopes? | Postage-stamp-sized | Room-sized,Hand-sized,Microchip-sized",
+        "What was the resolution of Leeuwenhoek's best microscopes? | Around 0.7 μm | Below 1 μm,0.2 μm,2 μm",
+        "Leeuwenhoek launched microbiology in what year? | 1674 | 1665,1673,1827"
+      ],
+      explanation: `
+        <ul>
+          <li>Leeuwenhoek made <b>postage-stamp-sized microscopes by hand</b>; the best resolved ~<b>0.7 μm</b>.</li>
+          <li>He effectively launched <b>microbiology in 1674</b>.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "Single-lensed microscopes remained popular until what decade? | The 1850s | The 1700s,The 1900s,The 1600s",
+        "Which scientist used simple microscopes in 1827 to demonstrate the ubiquity of the nucleus? | Robert Brown | Robert Hooke,Antonie van Leeuwenhoek,Ernst Abbe"
+      ],
+      explanation: `
+        <ul>
+          <li>Single-lensed microscopes remained popular until the <b>1850s</b>.</li>
+          <li>In <b>1827</b>, <b>Robert Brown</b> used them to demonstrate the ubiquity of the cell nucleus.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What causes chromatic aberration in simple microscopes? | Different wavelengths of light not coming to same focus | Dirty lenses,Too much magnification,Incorrect specimen staining",
+        "Why were compound microscope aberrations worse than simple microscope aberrations? | Lenses magnified aberrations as much as images | Compound microscopes were smaller,They used weaker light,They had fewer lenses"
+      ],
+      explanation: `
+        <ul>
+          <li><b>Chromatic aberration</b> occurs when different wavelengths of light don't come to the same focus.</li>
+          <li>In compound microscopes, aberrations were worse because lenses <b>magnified aberrations at least as much as images</b>.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "Who found that convex crown-glass and concave flint-glass lenses could correct chromatic aberration? | Chester Moor Hall | Benjamin Martin,Ernst Abbe,Joseph Jackson Lister",
+        "In what year did Chester Moor Hall make this discovery? | 1733 | 1774,1791,1830"
+      ],
+      explanation: `
+        <ul>
+          <li>In <b>1733</b>, amateur English optician <b>Chester Moor Hall</b> found that a combination of convex crown-glass and concave flint-glass lenses could help correct chromatic aberration.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "Who produced pioneering colour-corrected lenses for microscopes in 1774? | Benjamin Martin | Chester Moor Hall,Francois Beeldsnijder,Ernst Abbe",
+        "Benjamin Martin was from which city? | London | Cambridge,Amsterdam,Paris"
+      ],
+      explanation: `
+        <ul>
+          <li>In <b>1774</b>, <b>Benjamin Martin of London</b> produced a pioneering set of colour-corrected lenses for a microscope.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "Who introduced the achromatic microscope objective in 1791? | Francois Beeldsnijder | Joseph Jackson Lister,Ernst Abbe,Benjamin Martin",
+        "What does 'achromatic' mean in microscopy? | Non-colour-distorting | High magnification,Electron-based,Three-dimensional"
+      ],
+      explanation: `
+        <ul>
+          <li>Dutch optician <b>Francois Beeldsnijder</b> introduced the <b>achromatic</b> (non-colour-distorting) microscope objective in <b>1791</b>.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "Who published a theoretical approach to microscope objective design in 1830? | Joseph Jackson Lister | Ernst Abbe,Francois Beeldsnijder,Robert Brown",
+        "Joseph Jackson Lister was of what nationality? | English | Dutch,German,Scottish"
+      ],
+      explanation: `
+        <ul>
+          <li>English scientist <b>Joseph Jackson Lister</b> published a theoretical approach to complete microscope objective design in <b>1830</b>.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "Which German physicist examined the physics of lens construction? | Ernst Abbe | Joseph Jackson Lister,Chester Moor Hall,Robert Hooke",
+        "What did Ernst Abbe invent in 1868? | Apochromatic system of lenses | Electron microscope,Phase-contrast microscope,Simple microscope",
+        "When did Abbe publish his comprehensive analysis of lens theory? | 1873 | 1868,1830,1791"
+      ],
+      explanation: `
+        <ul>
+          <li>German physicist <b>Ernst Abbe</b> examined lens physics. He invented the <b>apochromatic system</b> in <b>1868</b> and published comprehensive lens theory analysis in <b>1873</b>.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "Which subsequent microscopes solved problems studying living cells? | Phase-contrast, interference, and confocal microscopes | Electron and scanning microscopes,Simple and compound microscopes,X-ray and acoustic microscopes",
+        "Light microscopes produced in the closing quarter of the 19th century reached what? | Effective limits of optical microscopy | Infinite magnification,Atomic resolution,Electron-level detail"
+      ],
+      explanation: `
+        <ul>
+          <li>Light microscopes of the late 19th century reached the <b>effective limits of optical microscopy</b>.</li>
+          <li><b>Phase-contrast, interference, and confocal microscopes</b> later solved specific problems with living cell specimens.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What is a simple microscope traditionally called? | A loupe | A lens,A scope,A viewer",
+        "Present-day higher-magnification simple microscope lenses often have how many glass elements? | Two | One,Three,Four"
+      ],
+      explanation: `
+        <ul>
+          <li>The simple microscope consists of a single lens traditionally called a <b>loupe</b>.</li>
+          <li>Present-day higher-magnification lenses are often made with <b>two glass elements</b> for colour correction.</li>
         </ul>
       `
     }
@@ -939,213 +1258,613 @@ const QUESTION_BANK = {
 
   "Cell Organelles & Functions": [
     {
-      templates: [
-        "Which organelle is described as the \"powerhouse of the cell\" because it produces the cell's main energy-carrying molecule?",
-        "ATP (adenosine triphosphate) is mainly produced by which double-membrane-bound organelle, often nicknamed the cell's powerhouse?",
-        "Aerobic respiration, which converts glucose into usable cellular energy (ATP), takes place primarily in which organelle?"
-      ],
-      choiceSets: [
-        { correct: "Mitochondria", distractors: ["Ribosomes", "Golgi apparatus", "Lysosomes"] },
-        { correct: "The mitochondrion", distractors: ["The smooth endoplasmic reticulum", "The chloroplast", "The peroxisome"] }
+      variants: [
+        "How many species are estimated to be living on the planet? | More than 8.7 million | About 1 million,Exactly 10 million,Less than 5 million",
+        "Every species on the planet is composed of what? | A cell | DNA only,Proteins only,Water only"
       ],
       explanation: `
         <ul>
-          <li><b>Mitochondria</b> are double membrane-bound, sausage-shaped organelles that are the main site of <b>aerobic respiration</b>, converting glucose into ATP.</li>
-          <li>The inner membrane folds into <b>cristae</b>, increasing surface area for energy production; the inner compartment is called the <b>matrix</b>.</li>
-          <li>Mitochondria have their own circular DNA, RNA, and 70S ribosomes — a clue to their evolutionary origin as once-independent organisms.</li>
-          <li><b>Ribosomes</b> make proteins (not ATP); the <b>Golgi apparatus</b> packages and ships proteins/lipids; <b>lysosomes</b> digest waste.</li>
+          <li>More than <b>8.7 million species</b> are living on the planet, and every single species is composed of a <b>cell</b>.</li>
         </ul>
       `
     },
     {
-      templates: [
-        "Which type of endoplasmic reticulum is studded with ribosomes and is primarily involved in protein manufacturing?",
-        "Protein synthesis on the endoplasmic reticulum happens mainly on which type of ER, which appears \"rough\" under the microscope due to attached ribosomes?",
-        "If a cell needs to manufacture large amounts of secreted proteins, which organelle component would you expect to be especially abundant?"
-      ],
-      choiceSets: [
-        { correct: "Rough endoplasmic reticulum (RER)", distractors: ["Smooth endoplasmic reticulum (SER)", "Golgi apparatus", "Peroxisomes"] },
-        { correct: "Rough endoplasmic reticulum", distractors: ["Smooth endoplasmic reticulum", "The nucleolus alone", "Lysosomes"] }
+      variants: [
+        "What do cells provide to an organism? | Shape, structure, and functions | Only energy,Only protection,Only reproduction",
+        "What are the functional structures within a cell collectively called? | Organelles | Enzymes,Proteins,Membranes"
       ],
       explanation: `
         <ul>
-          <li>The <b>rough endoplasmic reticulum (RER)</b> is composed of cisternae, tubules, and vesicles studded with ribosomes, and is mainly involved in <b>protein manufacture</b>.</li>
-          <li>The <b>smooth endoplasmic reticulum (SER)</b> lacks ribosomes and instead functions in producing <b>lipids and steroids</b>, and in <b>detoxifying</b> the cell.</li>
-          <li>Both types of ER form a network of membranous canals that act as a transport system within the cell.</li>
+          <li>Cells provide <b>shape, structure</b> and carry out different types of <b>functions</b>. The functional structures are called <b>organelles</b>.</li>
         </ul>
       `
     },
     {
-      templates: [
-        "Lysosomes are sometimes nicknamed \"suicidal bags\" — what is the reasoning behind this nickname?",
-        "Why are lysosomes commonly referred to as the \"suicide bags\" of the cell?",
-        "What function of lysosomes explains why they are given the dramatic nickname \"suicidal bags\"?"
-      ],
-      choiceSets: [
-        { correct: "They contain digestive enzymes capable of breaking down wastes, and dead or damaged cells/cell parts", distractors: ["They release toxins that kill neighboring cells during infection", "They trigger the cell's nucleus to self-destruct during mitosis errors", "They store excess sodium until the cell bursts"] },
-        { correct: "They're filled with enzymes that can digest the cell's own components if released, including waste and damaged structures", distractors: ["They produce poison that the cell secretes to defend itself", "They cause the cell membrane to dissolve when nutrients run low", "They actively pump the cell toward apoptosis using ATP"] }
+      variants: [
+        "According to cell theory postulates, what is the basic building block of life? | A cell | A tissue,An organ,A molecule",
+        "A cell is described as self-sufficient to carry out what? | All fundamental functions of an organism | Only digestion,Only reproduction,Only respiration"
       ],
       explanation: `
         <ul>
-          <li><b>Lysosomes</b> are tiny, single membrane-bound organelles filled with <b>digestive enzymes</b>.</li>
-          <li>Their job is to digest and remove wastes, and break down dead or damaged cells/cell components.</li>
-          <li>The "suicidal bags" nickname comes from the fact that if a lysosome's membrane ruptures, the enzymes inside can digest the <i>cell itself</i> — essentially causing the cell to "self-digest."</li>
+          <li>A cell is the basic structural and functional unit, and according to cell theory postulates, it is <b>self-sufficient to carry out all fundamental functions</b> of an organism.</li>
         </ul>
       `
     },
     {
-      templates: [
-        "What is the main function of the Golgi apparatus (Golgi complex) within the cell?",
-        "A membrane-bound organelle composed of stacked, flattened sacs called cisternae, which modifies, packages, and ships proteins and lipids to their destinations, is known as what?",
-        "If a protein has just been synthesized and needs to be modified and addressed for delivery to its correct location, which organelle handles this step?"
-      ],
-      choiceSets: [
-        { correct: "The Golgi apparatus", distractors: ["The rough endoplasmic reticulum", "The nucleolus", "The peroxisome"] },
-        { correct: "Golgi apparatus", distractors: ["Mitochondria", "Lysosome", "Cytoskeleton"] }
+      variants: [
+        "Cell organelles include both membrane-bound and what other type? | Non-membrane-bound | Only protein-bound,Only lipid-bound,Only carbohydrate-bound",
+        "Organelles are distinct in what two aspects? | Structures and functions | Size and color,Location and shape,Number and type"
       ],
       explanation: `
         <ul>
-          <li>The <b>Golgi apparatus</b> (Golgi complex) is composed of a series of flattened, stacked pouches called <b>cisternae</b>.</li>
-          <li>Its main role is <b>transporting, modifying, and packaging proteins and lipids</b> to their targeted destinations — essentially the cell's "post office."</li>
-          <li>It's found in both plant and animal cells, located within the cytoplasm.</li>
-          <li>The <b>rough ER</b> makes the proteins; the <b>Golgi</b> finishes and ships them.</li>
+          <li>Cell organelles include both <b>membrane and non-membrane bound</b> organelles, distinct in their <b>structures and functions</b>.</li>
         </ul>
       `
     },
     {
-      templates: [
-        "Which organelle is described as the \"largest organelle\" in a eukaryotic cell, contains the cell's genetic information, and is enclosed by a porous double membrane?",
-        "The control center of the cell, which houses DNA organized into chromosomes and contains a smaller structure called the nucleolus, is which organelle?",
-        "Which double-membraned organelle monitors and controls cellular activities like metabolism and growth using genetic information stored within it?"
-      ],
-      choiceSets: [
-        { correct: "The nucleus", distractors: ["The mitochondrion", "The Golgi apparatus", "The centrosome"] },
-        { correct: "Nucleus", distractors: ["Endoplasmic reticulum", "Vacuole", "Ribosome"] }
+      variants: [
+        "How many categories are organelles classified into based on membrane presence? | Three | Two,Four,Five",
+        "Which organelles are classified as having no membrane? | Cell wall, ribosomes, cytoskeleton | Nucleus, mitochondria, chloroplast,Vacuole, lysosome, Golgi,ER, nucleus, mitochondria"
       ],
       explanation: `
         <ul>
-          <li>The <b>nucleus</b> is the largest organelle in a eukaryotic cell — double-membraned, dark, round, and surrounded by a porous nuclear membrane.</li>
-          <li>It is the storehouse of the cell's <b>DNA</b>, organized into thread-like structures called <b>chromosomes</b>, which carry genes.</li>
-          <li>Inside the nucleus, the <b>nucleolus</b> is responsible for synthesizing protein components and RNA (specifically ribosomal components).</li>
-          <li>The nucleus functions as the cell's "control center," monitoring metabolism and growth via genetic information.</li>
+          <li>Organelles are classified into <b>three categories</b> based on membrane presence. <b>Non-membrane-bound</b>: cell wall, ribosomes, cytoskeleton.</li>
         </ul>
       `
     },
     {
-      templates: [
-        "Ribosomes are mainly composed of which two components, and what is their primary function?",
-        "What are ribosomes made of, and what process are they primarily responsible for?",
-        "A non-membrane-bound organelle composed mostly of RNA and protein, responsible for protein synthesis, and found either free in the cytoplasm or attached to the ER, describes which structure?"
-      ],
-      choiceSets: [
-        { correct: "Mostly RNA and protein; their main function is protein synthesis", distractors: ["Mostly lipids and carbohydrates; their main function is energy storage", "Mostly DNA and protein; their main function is cell division", "Mostly cellulose; their main function is structural support"] },
-        { correct: "About two-thirds RNA and one-third protein, primarily responsible for synthesizing proteins", distractors: ["Mainly phospholipids, primarily responsible for forming the cell membrane", "Mainly enzymes, primarily responsible for breaking down toxins", "Mainly chlorophyll, primarily responsible for photosynthesis"] }
+      variants: [
+        "Which organelles are single membrane-bound? | Vacuole, lysosome, Golgi apparatus, ER | Nucleus, mitochondria, chloroplast,Cell wall, ribosomes, cytoskeleton,Centrosome, nucleolus, peroxisome",
+        "Single membrane-bound organelles are found only in what type of cell? | Eukaryotic | Prokaryotic,Both prokaryotic and eukaryotic,Only plant cells"
       ],
       explanation: `
         <ul>
-          <li><b>Ribosomes</b> are mainly composed of about <b>2/3 RNA and 1/3 protein</b>.</li>
-          <li>They are <b>non-membrane-bound</b> organelles, found either free-floating in the cytoplasm or attached to the rough endoplasmic reticulum.</li>
-          <li>Their primary function is <b>protein synthesis</b> — essential for the survival of all living cells.</li>
-          <li>They are classified as <b>70S</b> (in prokaryotes) or <b>80S</b> (in eukaryotes) based on their density/size (Svedberg units), and each is composed of two subunits.</li>
+          <li><b>Single membrane-bound</b> organelles: vacuole, lysosome, Golgi apparatus, endoplasmic reticulum — found only in <b>eukaryotic cells</b>.</li>
         </ul>
       `
     },
     {
-      templates: [
-        "What is the primary role of the cytoskeleton within a cell?",
-        "A continuous network of filamentous protein structures running from the nucleus to the plasma membrane, providing shape and mechanical support, and aiding in cell movement, describes which structure?",
-        "Which structure provides a cell with both its shape/mechanical resistance AND contributes to motility during cell division (cytokinesis)?"
-      ],
-      choiceSets: [
-        { correct: "The cytoskeleton", distractors: ["The cell wall", "The plasma membrane alone", "The nucleolus"] },
-        { correct: "Cytoskeleton", distractors: ["Centrosome", "Vacuole", "Plastid"] }
+      variants: [
+        "Which organelles are double membrane-bound? | Nucleus, mitochondria, chloroplast | Vacuole, lysosome, Golgi,Cell wall, ribosomes, cytoskeleton,ER, Golgi, vacuole",
+        "Double membrane-bound organelles are present only in what type of cell? | Eukaryotic | Prokaryotic,Both types,Only animal cells"
       ],
       explanation: `
         <ul>
-          <li>The <b>cytoskeleton</b> is a continuous network of filamentous proteinaceous structures running throughout the cytoplasm, from the nucleus to the plasma membrane.</li>
-          <li>It provides <b>shape and mechanical resistance</b> against deformation.</li>
-          <li>Its filaments can rapidly assemble or disassemble depending on the cell's needs, and their <b>contractile nature</b> helps with motility, especially during <b>cytokinesis</b> (cell division).</li>
-          <li>It's found in all living cells, especially eukaryotes.</li>
+          <li><b>Double membrane-bound</b> organelles: nucleus, mitochondria, chloroplast — found only in <b>eukaryotic cells</b>.</li>
         </ul>
       `
     },
     {
-      templates: [
-        "Cilia and flagella both contain a core structure called an axoneme — how many pairs of peripheral microtubules does this axoneme typically contain?",
-        "The axoneme — the core structure of cilia and flagella — is built from a characteristic arrangement of microtubules. How many peripheral microtubule pairs surround the central pair?",
-        "What structures do cilia and flagella emerge from, and how many radial spokes connect the peripheral microtubule pairs to the central sheath?"
-      ],
-      choiceSets: [
-        { correct: "9 pairs of peripheral microtubules (with a central pair), connected by 9 radial spokes, emerging from basal bodies", distractors: ["7 pairs of peripheral microtubules with no central pair, emerging directly from the nucleus", "11 pairs of peripheral microtubules connected by 5 radial spokes, emerging from the Golgi apparatus", "9 single (unpaired) microtubules with 3 radial spokes, emerging from mitochondria"] },
-        { correct: "9 peripheral microtubule pairs surrounding a central pair, connected via 9 radial spokes; cilia/flagella emerge from basal bodies (centriole-like structures)", distractors: ["6 peripheral pairs with no radial spokes, emerging from lysosomes", "9 peripheral pairs but no central microtubules at all, emerging from the nuclear envelope", "12 peripheral microtubules arranged in a single ring, emerging from ribosomes"] }
+      variants: [
+        "The plasma membrane is also termed what? | Cell membrane or cytoplasmic membrane | Nuclear membrane,Cell wall,Organelle membrane",
+        "What is the plasma membrane composed of? | Lipid bilayer and proteins | Only proteins,Only lipids,Carbohydrates and nucleic acids",
+        "The plasma membrane is described as what type of membrane? | Selectively permeable | Fully permeable,Impermeable,Semi-permeable only to water"
       ],
       explanation: `
         <ul>
-          <li>The <b>axoneme</b> (core of cilia and flagella) contains <b>9 pairs of peripheral microtubules</b> arranged around a set of <b>central microtubules</b> running parallel to the axis.</li>
-          <li>The central tubules are interconnected by a bridge and embedded in a central sheath.</li>
-          <li>One peripheral microtubule pair connects to the central sheath via a <b>radial spoke</b> — giving a total of <b>9 radial spokes</b>.</li>
-          <li>Cilia and flagella emerge from centriole-like structures called <b>basal bodies</b>.</li>
-          <li><b>Cilia</b> are shorter, hair-like, and move the cell or extracellular fluid like oars; <b>flagella</b> are longer and drive cell movement.</li>
+          <li>The <b>plasma membrane</b> (also cell membrane or cytoplasmic membrane) is a <b>selectively permeable</b> membrane composed of a <b>lipid bilayer and proteins</b>.</li>
         </ul>
       `
     },
     {
-      templates: [
-        "What structures arise from centrioles to help separate chromosomes during cell division?",
-        "During cell division, what do the centrioles within the centrosome give rise to, which then helps pull chromosomes apart?",
-        "Each centriole is composed of peripheral fibrils made of which protein, and what structure do centrioles produce during division?"
-      ],
-      choiceSets: [
-        { correct: "Spindle fibres, made possible by tubulin protein in the centrioles", distractors: ["Cell wall fibers made of cellulose", "Lysosomal enzymes that digest the nuclear envelope", "Cristae that fold the inner mitochondrial membrane"] },
-        { correct: "Spindle fibres (the centrioles, composed of tubulin fibrils, give rise to these during division)", distractors: ["Ribosomal subunits used for new protein synthesis", "New Golgi stacks for the daughter cells", "Vacuoles to store excess chromosomes"] }
+      variants: [
+        "In an animal cell, what does the cell membrane function to provide? | Shape and protection of inner contents | Only energy production,Only waste removal,Only cell division",
+        "What model describes the structure of the plasma membrane? | Fluid mosaic model | Sandwich model,Unit membrane model,Davson-Danielli model"
       ],
       explanation: `
         <ul>
-          <li>The <b>centrosome</b> is made up of two perpendicular <b>centrioles</b>.</li>
-          <li>Each centriole is composed of <b>9 equally spaced peripheral fibrils of tubulin protein</b> (each fibril being a set of interlinked triplets), connected to a proteinaceous core ("hub") via radial spokes.</li>
-          <li>During cell division, the centrioles (via their basal-body-like role) give rise to <b>spindle fibres</b>, which are essential for organizing and separating chromosomes.</li>
-          <li>Centrioles also form the <b>basal bodies</b> of cilia and flagella.</li>
+          <li>In animal cells, the cell membrane provides <b>shape and protects inner contents</b>. Its structure is described by the <b>fluid mosaic model</b>.</li>
         </ul>
       `
     },
     {
-      templates: [
-        "Compared to animal cells, plant cells typically have vacuoles that are what size, and what is one major function of vacuoles?",
-        "Vacuoles are membrane-bound, fluid-filled organelles. How do plant and animal cell vacuoles typically compare in size, and what do vacuoles store?",
-        "What is true about the size of vacuoles in plant cells versus animal cells, and what role do vacuoles play in waste handling?"
-      ],
-      choiceSets: [
-        { correct: "Plant cells have larger vacuoles than animal cells; vacuoles store nutrients and also store/expel waste products", distractors: ["Plant cells have smaller vacuoles than animal cells; vacuoles only produce ATP", "Plant and animal vacuoles are always identical in size; vacuoles only function in photosynthesis", "Animal cells have larger vacuoles than plant cells; vacuoles synthesize new DNA"] },
-        { correct: "Plant cells generally have larger vacuoles; vacuoles act as storage bubbles for food/nutrients and eventually expel waste", distractors: ["Animal cells generally have larger vacuoles; vacuoles primarily generate cellular energy", "Plant and animal cells never contain vacuoles; only fungi do", "Plant cells lack vacuoles entirely; only animal cells have them"] }
+      variants: [
+        "According to the fluid mosaic model, what are plasma membranes made of? | Lipid bilayer with embedded proteins | Protein bilayer with embedded lipids,Carbohydrate bilayer with embedded proteins,Only phospholipids",
+        "Plasma membranes are described as what kind of structures? | Subcellular structures | Cellular structures,Organellar structures,Nuclear structures"
       ],
       explanation: `
         <ul>
-          <li><b>Vacuoles</b> are storage bubbles of irregular shape, fluid-filled and enclosed by a membrane.</li>
-          <li>They store food or nutrients the cell needs to survive, and also store waste products, which are eventually expelled — protecting the rest of the cell from contamination.</li>
-          <li><b>Plant cells generally have larger vacuoles</b> than animal cells.</li>
+          <li>According to the fluid mosaic model, plasma membranes are <b>subcellular structures made of a lipid bilayer in which protein molecules are embedded</b>.</li>
         </ul>
       `
     },
     {
-      templates: [
-        "Based on the presence or absence of a membrane, which of the following is correctly classified as a non-membrane-bound organelle found in both prokaryotic and eukaryotic cells?",
-        "Which structure(s) are classified as non-membrane-bound organelles present in both prokaryotic and eukaryotic cells?",
-        "Cell organelles can be grouped by membrane structure (none, single, or double membrane). Which group does the cell wall, ribosomes, and cytoskeleton belong to?"
-      ],
-      choiceSets: [
-        { correct: "Non-membrane-bound organelles (e.g., ribosomes, cytoskeleton, cell wall)", distractors: ["Single membrane-bound organelles (e.g., lysosomes, vacuoles)", "Double membrane-bound organelles (e.g., nucleus, mitochondria)", "Organelles unique to chloroplast-containing cells only"] },
-        { correct: "Non-membrane-bound — present in both prokaryotic and eukaryotic cells", distractors: ["Single-membrane-bound — present only in eukaryotic cells", "Double-membrane-bound — present only in plant cells", "Triple-membrane-bound — a category that doesn't actually exist in standard classification"] }
+      variants: [
+        "What is cytoplasm mainly composed of? | Water, organic and inorganic compounds | Only proteins,Only lipids,Only carbohydrates",
+        "Where are all cell organelles embedded? | In the cytoplasm | In the nucleus,In the cell membrane,In the cell wall",
+        "Cytoplasm contains enzymes mainly responsible for what? | Controlling metabolic activity | Only digestion,Only respiration,Only reproduction"
       ],
       explanation: `
         <ul>
-          <li>Cell organelles are classified into three categories based on membranes:
-            <ul>
-              <li><b>No membrane:</b> cell wall, ribosomes, cytoskeleton — present in both prokaryotic and eukaryotic cells.</li>
-              <li><b>Single membrane:</b> vacuole, lysosome, Golgi apparatus, endoplasmic reticulum — found only in eukaryotic cells.</li>
-              <li><b>Double membrane:</b> nucleus, mitochondria, chloroplast — found only in eukaryotic cells.</li>
-            </ul>
-          </li>
-          <li>This classification is a useful way to remember which organelles can/cannot be found in simpler (prokaryotic) cells.</li>
+          <li>Cytoplasm is a jelly-like substance composed of <b>water, organic and inorganic compounds</b>. All organelles are embedded in it, and it contains enzymes controlling <b>metabolic activity</b>.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "The nucleus is found in what type of cells? | All eukaryotic cells | Only plant cells,Only animal cells,All prokaryotic cells",
+        "What is the largest organelle in a eukaryotic cell? | The nucleus | The mitochondrion,The vacuole,The Golgi apparatus",
+        "What does the nucleus function as? | Control centre of cellular activities | Powerhouse of the cell,Transport system,Storage organelle"
+      ],
+      explanation: `
+        <ul>
+          <li>The <b>nucleus</b> is a double-membraned organelle found in <b>all eukaryotic cells</b>. It is the <b>largest organelle</b> and functions as the <b>control centre</b> of cellular activities.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What is the storehouse of the cell's DNA? | The nucleus | The mitochondrion,The ribosome,The Golgi apparatus",
+        "The nuclear membrane is described as what type of membrane? | Porous | Impermeable,Fully permeable,Selectively permeable only",
+        "What forms a wall between cytoplasm and nucleus? | Nuclear membrane | Cell membrane,Cell wall,Endoplasmic reticulum"
+      ],
+      explanation: `
+        <ul>
+          <li>The nucleus is the <b>storehouse of the cell's DNA</b>. It is surrounded by a <b>porous nuclear membrane</b> that forms a wall between cytoplasm and nucleus.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What are the tiny spherical bodies within the nucleus called? | Nucleolus | Nucleoid,Chromatin,Centriole",
+        "Nucleoli in the nucleus are responsible for the synthesis of what? | Protein and RNA | DNA only,Lipids only,Carbohydrates only"
+      ],
+      explanation: `
+        <ul>
+          <li>Within the nucleus are tiny spherical bodies called the <b>nucleolus</b>, responsible for synthesizing <b>protein and RNA</b>.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What are chromosomes described as? | Thin and thread-like structures | Thick and rod-like,Round and spherical,Double-stranded circular",
+        "What important structure do chromosomes carry? | Genes | Ribosomes,Enzymes,Lipids",
+        "Genes are described as what kind of unit? | Hereditary unit | Metabolic unit,Structural unit,Energy unit"
+      ],
+      explanation: `
+        <ul>
+          <li><b>Chromosomes</b> are thin and thread-like structures that carry <b>genes</b>, which are <b>hereditary units</b> for inheritance of traits.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What is the primary function of the nucleus? | Monitor cellular activities including metabolism and growth | Produce ATP,Transport materials,Digest waste",
+        "How does the nucleus monitor cellular activities? | By making use of DNA's genetic information | By producing enzymes,By dividing constantly,By storing lipids"
+      ],
+      explanation: `
+        <ul>
+          <li>The primary function of the nucleus is to <b>monitor cellular activities including metabolism and growth</b> by making use of <b>DNA's genetic information</b>.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "The endoplasmic reticulum is described as what kind of network? | Network of membranous canals filled with fluid | Network of protein fibers,Network of DNA strands,Network of lipid droplets",
+        "What is the primary function of the ER? | Transport system of the cell | Energy production,Protein synthesis,Waste removal"
+      ],
+      explanation: `
+        <ul>
+          <li>The <b>endoplasmic reticulum</b> is a network of membranous canals filled with fluid, acting as the <b>transport system</b> of the cell.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "Rough ER is composed of what structures? | Cisternae, tubules, and vesicles | Only tubules,Only cisternae,Only vesicles",
+        "What is rough ER mainly involved in? | Protein manufacture | Lipid production,Detoxification,Energy storage",
+        "Rough ER is found where? | Throughout the cell | Only in nucleus,Only in cytoplasm near membrane,Only in mitochondria"
+      ],
+      explanation: `
+        <ul>
+          <li><b>Rough ER</b> is composed of cisternae, tubules, and vesicles, and is involved in <b>protein manufacture</b>.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "Smooth ER is described as what kind of organelle? | Storage organelle | Manufacturing organelle,Transport organelle,Secretory organelle",
+        "Smooth ER is associated with the production of what? | Lipids and steroids | Proteins and RNA,DNA and carbohydrates,Enzymes and hormones",
+        "What other function does smooth ER have? | Detoxifying the cell | Producing energy,Dividing cells,Storing DNA"
+      ],
+      explanation: `
+        <ul>
+          <li><b>Smooth ER</b> is a storage organelle associated with <b>lipid and steroid production</b> and <b>detoxifying the cell</b>.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "Why are mitochondria called the powerhouses of the cell? | They produce energy-rich molecules | They store DNA,They transport proteins,They digest waste",
+        "How is the mitochondrial genome inherited in several organisms? | Maternally | Paternally,Equally from both parents,Randomly",
+        "What shape are mitochondria described as? | Sausage-shaped | Spherical,Disc-shaped,Ribbon-shaped"
+      ],
+      explanation: `
+        <ul>
+          <li><b>Mitochondria</b> are called powerhouses because they <b>produce energy-rich molecules</b>. The mitochondrial genome is inherited <b>maternally</b> in several organisms. They are <b>sausage-shaped</b>.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What is the inner compartment of mitochondria called? | Matrix | Stroma,Cristae,Lumen",
+        "What are the folds of the inner mitochondrial membrane called? | Cristae | Grana,Thylakoids,Lamella",
+        "What does the outer mitochondrial membrane form? | Continuous boundary with cytoplasm | Boundary with nucleus,Boundary with ER,Boundary with Golgi"
+      ],
+      explanation: `
+        <ul>
+          <li>The inner compartment is the <b>matrix</b>, folded into <b>cristae</b>. The outer membrane forms a <b>continuous boundary with cytoplasm</b>.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What is converted into ATP in mitochondria? | Glucose | Lipids,Proteins,RNA",
+        "Mitochondria are sites of what type of respiration? | Aerobic respiration | Anaerobic respiration,Photosynthesis,Fermentation",
+        "What size ribosomes do mitochondria have? | 70S | 80S,60S,50S"
+      ],
+      explanation: `
+        <ul>
+          <li>Mitochondria are sites of <b>aerobic respiration</b>, converting <b>glucose into ATP</b>. They have <b>70S ribosomes</b>.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What do mitochondria have that is circular? | DNA | RNA only,Proteins only,Lipids only",
+        "Besides circular DNA, what other molecules help in protein synthesis in mitochondria? | RNA molecules, ribosomes, and a few other molecules | Only DNA,Only lipids,Only carbohydrates"
+      ],
+      explanation: `
+        <ul>
+          <li>Mitochondria have their own <b>circular DNA, RNA molecules, ribosomes (70S)</b>, and other molecules that help in protein synthesis.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "Plastids are described as what type of organelles? | Large, membrane-bound organelles containing pigments | Small, non-membrane organelles,Protein-only structures,Energy-producing organelles",
+        "How many types of plastids are there based on pigments? | Three | Two,Four,Five"
+      ],
+      explanation: `
+        <ul>
+          <li><b>Plastids</b> are large, membrane-bound organelles containing pigments. There are <b>three types</b> based on pigments.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What shapes can chloroplasts vary in? | Disc, spherical, discoid, oval, ribbon | Only spherical,Only disc,Only oval",
+        "Where are chloroplasts present? | Mesophyll cells of leaves | Root cells,Stem cells only,Flower cells",
+        "What pigments do chloroplasts store besides chlorophyll? | Carotenoid pigments | Xanthophylls only,Anthocyanins only,Melanin"
+      ],
+      explanation: `
+        <ul>
+          <li><b>Chloroplasts</b> vary in shape (disc, spherical, discoid, oval, ribbon) and are present in <b>mesophyll cells of leaves</b>, storing <b>chlorophyll and carotenoid pigments</b>.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What is the function of chloroplast pigments? | Trapping light energy for photosynthesis | Producing ATP,Transporting proteins,Digesting waste",
+        "What does the inner membrane of chloroplasts enclose? | Stroma | Matrix,Cristae,Lumen"
+      ],
+      explanation: `
+        <ul>
+          <li>Chloroplast pigments <b>trap light energy for photosynthesis</b>. The inner membrane encloses the <b>stroma</b>.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What are the flattened disc-like chlorophyll-containing structures called? | Thylakoids | Grana,Stroma,Lamella",
+        "How are thylakoids arranged? | In a stacked manner like a pile of coins | Randomly scattered,In a single layer,In pairs only",
+        "What is each pile of thylakoids called? | Granum (plural: grana) | Stroma,Crista,Vesicle"
+      ],
+      explanation: `
+        <ul>
+          <li><b>Thylakoids</b> are flattened disc-like structures arranged in stacks called <b>grana</b> (singular: granum).</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What connects thylakoids of different grana? | Stromal lamella | Cristae,Matrix channels,Nuclear pores",
+        "What does the stroma of chloroplast contain? | Circular DNA, 70S ribosomes, and enzymes for carbohydrate and protein synthesis | Only chlorophyll,Only lipids,Only RNA"
+      ],
+      explanation: `
+        <ul>
+          <li>Thylakoids of different grana are connected by <b>stromal lamella</b>. The stroma contains <b>circular DNA, 70S ribosomes, and enzymes</b> for carbohydrate and protein synthesis.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What pigments do chromoplasts contain? | Fat-soluble carotenoid pigments like xanthophylls and carotene | Chlorophyll only,Anthocyanins only,Melanin only",
+        "What colors do chromoplasts provide to plants? | Yellow, orange, red | Green only,Blue only,Purple only"
+      ],
+      explanation: `
+        <ul>
+          <li><b>Chromoplasts</b> contain fat-soluble carotenoid pigments (xanthophylls, carotene), providing <b>yellow, orange, red</b> colors.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What are leucoplasts? | Colorless plastids that store nutrients | Pigmented plastids,Energy-producing organelles,Waste-removing structures",
+        "What do amyloplasts store? | Carbohydrates like starch | Proteins,Oils and fats,Pigments"
+      ],
+      explanation: `
+        <ul>
+          <li><b>Leucoplasts</b> are colorless plastids storing nutrients. <b>Amyloplasts</b> store carbohydrates (starch), aleuroplasts store proteins, elaioplasts store oils and fats.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "Ribosomes are mainly composed of what ratio of RNA to protein? | 2/3 RNA and 1/3 protein | 1/2 RNA and 1/2 protein,1/3 RNA and 2/3 protein,3/4 RNA and 1/4 protein",
+        "Ribosomes are found in what form? | Tiny particles | Large spheres,Fiber networks,Membrane sheets"
+      ],
+      explanation: `
+        <ul>
+          <li>Ribosomes are mainly composed of <b>2/3 RNA and 1/3 protein</b>, found as tiny particles.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What does the 'S' in 70S and 80S refer to? | Svedberg's Unit (density and size) | Speed unit,Size unit only,Density unit only",
+        "Where are 70S ribosomes found? | Prokaryotes | Eukaryotes,Both equally,Only in mitochondria",
+        "Where are 80S ribosomes found? | Eukaryotes | Prokaryotes,Only in chloroplasts,Only in nucleus"
+      ],
+      explanation: `
+        <ul>
+          <li><b>70S</b> ribosomes are in prokaryotes, <b>80S</b> in eukaryotes. The <b>S</b> refers to <b>Svedberg's Unit</b> (density and size).</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "How many subunits compose both 70S and 80S ribosomes? | Two subunits | One subunit,Three subunits,Four subunits",
+        "Where are ribosomes found in the cell? | Within ER or freely in cytoplasm | Only in nucleus,Only in mitochondria,Only in Golgi"
+      ],
+      explanation: `
+        <ul>
+          <li>Both 70S and 80S ribosomes are composed of <b>two subunits</b>. They are found within the ER or freely in the cytoplasm.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What are the two components that constitute ribosomes? | Ribosomal RNA and ribosomal proteins | DNA and proteins,Lipids and carbohydrates,Enzymes and hormones",
+        "What is the primary function of ribosomes? | Protein synthesis | Lipid synthesis,Energy production,Waste digestion"
+      ],
+      explanation: `
+        <ul>
+          <li>Ribosomes consist of <b>ribosomal RNA and ribosomal proteins</b>. Their primary function is <b>protein synthesis</b>.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What is another term for Golgi apparatus? | Golgi Complex | Golgi Body,Golgi Network,Golgi Membrane",
+        "What are the flattened, stacked pouches of Golgi apparatus called? | Cisternae | Cristae,Thylakoids,Vesicles",
+        "What is Golgi apparatus mainly responsible for? | Transporting, modifying, and packaging proteins and lipids | Producing energy,Digesting waste,Synthesizing DNA"
+      ],
+      explanation: `
+        <ul>
+          <li>The <b>Golgi apparatus</b> (Golgi Complex) is composed of <b>cisternae</b> and is responsible for <b>transporting, modifying, and packaging proteins and lipids</b>.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "Where is Golgi apparatus found? | Within cytoplasm of plant and animal cells | Only in plant cells,Only in animal cells,Only in nucleus",
+        "Microbodies are described as what kind of organelles? | Membrane-bound, minute, vesicular | Non-membrane, large, spherical,Double-membrane, elongated,Protein-only, tiny, rod-shaped"
+      ],
+      explanation: `
+        <ul>
+          <li>Golgi apparatus is found in the <b>cytoplasm of both plant and animal cells</b>. <b>Microbodies</b> are membrane-bound, minute, vesicular organelles.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What do microbodies contain? | Various enzymes and proteins | Only lipids,Only carbohydrates,Only nucleic acids",
+        "Under what microscope can microbodies be visualized? | Electron microscope | Light microscope only,Simple microscope only,No microscope needed"
+      ],
+      explanation: `
+        <ul>
+          <li>Microbodies contain <b>various enzymes and proteins</b> and can only be visualized under the <b>electron microscope</b>.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What is the cytoskeleton composed of? | Filamentous proteinaceous structures | Lipid fibers,Carbohydrate strands,DNA filaments",
+        "Where does the cytoskeleton run? | From nucleus to plasma membrane | From ER to Golgi,From mitochondria to nucleus,Only in cytoplasm",
+        "The cytoskeleton matrix is composed of proteins that can do what? | Divide rapidly or disassemble | Only assemble,Only disassemble,Remain static"
+      ],
+      explanation: `
+        <ul>
+          <li>The <b>cytoskeleton</b> is a network of <b>filamentous proteinaceous structures</b> running from nucleus to plasma membrane. Its proteins can <b>divide rapidly or disassemble</b>.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What are the primary functions of the cytoskeleton? | Providing shape, mechanical resistance, and motility during cytokinesis | Only energy production,Only waste digestion,Only protein synthesis",
+        "The contractile nature of cytoskeleton filaments helps in what? | Motility during cytokinesis | Photosynthesis,Respiration,Excretion"
+      ],
+      explanation: `
+        <ul>
+          <li>Cytoskeleton functions: <b>shape, mechanical resistance</b>, and <b>motility during cytokinesis</b>.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What are cilia described as? | Hair-like projections, small structures | Long whip-like structures,Large membrane sheets,Round vesicles",
+        "How do cilia function? | Like oars to move cell or extracellular fluid | Like propellers for rotation,Like anchors for attachment,Like sensors for detection"
+      ],
+      explanation: `
+        <ul>
+          <li><b>Cilia</b> are hair-like projections that work <b>like oars</b> to move the cell or extracellular fluid.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "Flagella are described as slightly bigger than cilia and responsible for what? | Cell movements | Only cell division,Only waste transport,Only protein synthesis",
+        "How does the eukaryotic flagellum differ from the prokaryotic flagellum? | Structurally | Functionally only,In size only,In color only"
+      ],
+      explanation: `
+        <ul>
+          <li><b>Flagella</b> are slightly bigger and responsible for <b>cell movements</b>. The eukaryotic flagellum <b>structurally differs</b> from its prokaryotic counterpart.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What is the core of cilia and flagella called? | Axoneme | Centriole,Basal body,Spindle fiber",
+        "How many pairs of peripheral microtubules does the axoneme contain? | Nine pairs | Six pairs,Twelve pairs,Three pairs",
+        "How many radial spokes are there in the axoneme? | Nine | Six,Twelve,Three"
+      ],
+      explanation: `
+        <ul>
+          <li>The <b>axoneme</b> contains <b>9 pairs of peripheral microtubules</b> and <b>9 radial spokes</b>.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What structures do cilia and flagella emerge from? | Basal bodies | Centrosomes,Nucleoli,Chromosomes",
+        "Basal bodies are described as what kind of structures? | Centriole-like | Nucleus-like,Mitochondria-like,Golgi-like"
+      ],
+      explanation: `
+        <ul>
+          <li>Cilia and flagella emerge from <b>basal bodies</b> (centriole-like structures).</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What is the centrosome made up of? | Two mutually perpendicular centrioles | Three centrioles,Four centrioles,One centriole",
+        "Each centriole is composed of how many equally spaced peripheral fibrils? | Nine | Six,Twelve,Three"
+      ],
+      explanation: `
+        <ul>
+          <li>The <b>centrosome</b> is made of <b>two perpendicular centrioles</b>. Each centriole has <b>9 peripheral fibrils</b> of tubulin protein.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What is each fibril in a centriole described as? | A set of interlinked triplets | A single filament,A pair of strands,A group of five",
+        "What is the core part of the centriole called? | Hub | Nucleus,Matrix,Stroma",
+        "What is the hub composed of? | Protein | Lipid,Carbohydrate,Nucleic acid"
+      ],
+      explanation: `
+        <ul>
+          <li>Each fibril is a <b>set of interlinked triplets</b>. The core (hub) is <b>proteinaceous</b>.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What connects the peripheral fibrils to the hub? | Radial spoke | Axoneme,Stromal lamella,Crista",
+        "What are radial spokes made of? | Proteins | Lipids,Carbohydrates,Nucleic acids"
+      ],
+      explanation: `
+        <ul>
+          <li>The hub connects peripheral fibrils via <b>radial spokes</b> made of <b>proteins</b>.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What do centrioles give rise to during cell division? | Spindle fibres | Chromosomes,Nuclear envelope,Cell membrane",
+        "Centrioles form the basal bodies of what structures? | Cilia and flagella | Mitochondria and chloroplasts,Ribosomes and ER,Nucleus and nucleolus"
+      ],
+      explanation: `
+        <ul>
+          <li>Centrioles form the <b>basal bodies of cilia and flagella</b> and give rise to <b>spindle fibres</b> during cell division.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What are vacuoles mostly defined as? | Storage bubbles of irregular shapes | Round protein spheres,Long fiber networks,Small enzyme packets",
+        "What are vacuoles filled with? | Fluid | Air only,Solid waste only,Protein crystals only"
+      ],
+      explanation: `
+        <ul>
+          <li><b>Vacuoles</b> are storage bubbles of <b>irregular shapes</b>, <b>fluid-filled</b> and enclosed by a membrane.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What do vacuoles store besides food and nutrients? | Waste products | Only DNA,Only proteins,Only lipids",
+        "How do vacuoles protect the rest of the cell? | By storing and eventually expelling waste products | By producing antibodies,By digesting pathogens,By forming barriers"
+      ],
+      explanation: `
+        <ul>
+          <li>Vacuoles store <b>food, nutrients, and waste products</b>. Waste is eventually expelled, protecting the cell from contamination.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "Compared to animal cells, plant cells have vacuoles that are what? | Larger | Smaller,Same size,Absent",
+        "Lysosomes are described as what shape? | Tiny and circular | Large and oval,Long and tubular,Flat and sheet-like"
+      ],
+      explanation: `
+        <ul>
+          <li>Plant cells have <b>larger vacuoles</b> than animal cells. <b>Lysosomes</b> are tiny, circular, single membrane-bound organelles.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What are lysosomes filled with? | Digestive enzymes | Photosynthetic pigments,Energy molecules,Structural proteins",
+        "Why are lysosomes called 'suicidal bags'? | Capable of breaking down or digesting wastes, dead and damaged cells | They self-destruct immediately,They produce toxins,They divide uncontrollably"
+      ],
+      explanation: `
+        <ul>
+          <li>Lysosomes are filled with <b>digestive enzymes</b> and called <b>"suicidal bags"</b> because they can digest wastes, dead, and damaged cells.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What does the peroxisome contain? | Reducing enzyme | Oxidizing enzyme only,Digestive enzyme only,Photosynthetic enzyme",
+        "What is the peroxisome involved in? | Metabolism of lipids and catabolism of long-chain fatty acids | Protein synthesis,DNA replication,Cell division"
+      ],
+      explanation: `
+        <ul>
+          <li>The <b>peroxisome</b> contains a <b>reducing enzyme</b> and is involved in <b>lipid metabolism and catabolism of long-chain fatty acids</b>.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "Which cell organelle is called the powerhouse of the cell? | Mitochondria | Chloroplast,Nucleus,Ribosome",
+        "What is the largest membrane-bound organelle in a eukaryotic cell? | Nucleus | Mitochondrion,Vacuole,Chloroplast"
+      ],
+      explanation: `
+        <ul>
+          <li><b>Mitochondria</b> are the powerhouse of the cell. The <b>nucleus</b> is the largest membrane-bound organelle.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What is a nucleoid? | Non-membrane, irregular-shaped organelle in prokaryotic cells | Membrane-bound organelle in eukaryotes,Type of plastid,Type of vacuole",
+        "What do nucleoids carry? | Genetic material | Only proteins,Only lipids,Only carbohydrates"
+      ],
+      explanation: `
+        <ul>
+          <li>The <b>nucleoid</b> is a non-membrane, irregular-shaped organelle in <b>prokaryotic cells</b> carrying <b>genetic material</b>.</li>
         </ul>
       `
     }
@@ -1153,96 +1872,179 @@ const QUESTION_BANK = {
 
   "Cell Transport": [
     {
-      templates: [
-        "What is the key difference between passive transport and active transport across a cell membrane?",
-        "How do passive and active transport fundamentally differ in terms of energy requirements and direction of movement?",
-        "Substances moving from an area of higher concentration to lower concentration without using cellular energy describes which type of transport, as opposed to the type that requires ATP?"
-      ],
-      choiceSets: [
-        { correct: "Passive transport requires no energy and moves substances down their concentration gradient (high to low); active transport requires energy (ATP) and can move substances against their gradient (low to high)", distractors: ["Passive transport requires ATP, while active transport requires no energy at all", "Both passive and active transport always require ATP, but differ in the proteins used", "Passive transport only happens in plant cells, while active transport only happens in animal cells"] },
-        { correct: "Passive transport moves substances from high to low concentration without energy input; active transport moves substances against the concentration gradient and requires ATP", distractors: ["Passive transport always requires transport proteins, while active transport never does", "Active transport moves substances from high to low concentration without energy; passive transport requires ATP", "Passive transport only occurs across the nuclear membrane"] }
+      variants: [
+        "What is the important role of the plasma membrane? | Controls everything that enters and leaves the cell | Produces energy,Digests waste,Synthesizes proteins",
+        "If a cell were a house, what would the plasma membrane be? | Walls with windows and doors | The roof,The foundation,The furniture"
       ],
       explanation: `
         <ul>
-          <li><b>Passive transport</b> occurs without any input of energy — substances move from an area of <b>higher concentration to lower concentration</b> (down the concentration gradient), like a ball rolling downhill.</li>
-          <li><b>Active transport</b> requires energy in the form of <b>ATP</b>, often because substances are moving from an area of <b>lower to higher concentration</b> (against the gradient — "uphill").</li>
-          <li>Passive transport includes simple diffusion, osmosis, and facilitated diffusion.</li>
-          <li>Active transport includes pump transport (e.g., sodium-potassium pump) and vesicle transport (endocytosis/exocytosis).</li>
+          <li>The <b>plasma membrane</b> controls <b>everything that enters and leaves the cell</b>. It is compared to walls with windows and doors in a house.</li>
         </ul>
       `
     },
     {
-      templates: [
-        "If a red blood cell is placed into a <b>hypertonic</b> solution, what will happen to the cell?",
-        "A solution with a higher solute concentration (and therefore lower water concentration) than the inside of a red blood cell is described as hypertonic. What happens to the cell in this environment?",
-        "Placing a red blood cell into a hypertonic solution causes net water movement in which direction, and with what visible effect on the cell?"
-      ],
-      choiceSets: [
-        { correct: "The cell will shrink (crenate) as water flows out of the cell into the surrounding solution", distractors: ["The cell will swell and potentially rupture as water rushes in", "The cell will remain exactly the same size, as water moves equally in both directions", "The cell will immediately divide via mitosis"] },
-        { correct: "Water moves out of the cell, causing it to shrink/crenate", distractors: ["Water moves into the cell, causing it to swell and lyse", "No net water movement occurs, since the cell is already isotonic", "The cell membrane dissolves entirely"] }
+      variants: [
+        "What are the two basic ways substances can cross the plasma membrane? | Passive transport and active transport | Diffusion and osmosis only,Endocytosis and exocytosis only,Simple and facilitated diffusion only",
+        "Which type of transport requires no energy? | Passive transport | Active transport,Vesicle transport,Pump transport"
       ],
       explanation: `
         <ul>
-          <li>A <b>hypertonic</b> solution has a <b>higher</b> solute concentration than the inside of the cell (hyper = greater than normal).</li>
-          <li>This means the solution has a <i>lower</i> water concentration than inside the cell, so the <b>net flow of water will be OUT of the cell</b> (water moves toward the area with less water, i.e., toward the higher solute concentration).</li>
-          <li>For a red blood cell, this causes the cell to <b>shrink/crenate</b>.</li>
-          <li>Compare: in a <b>hypotonic</b> solution (lower solute outside), water flows <i>into</i> the cell, causing swelling/lysis. In an <b>isotonic</b> solution, there's no net water movement.</li>
+          <li>Two basic ways: <b>passive transport</b> (no energy) and <b>active transport</b> (requires energy).</li>
         </ul>
       `
     },
     {
-      templates: [
-        "In an <b>isotonic</b> solution, what happens to the net movement of water across a cell's membrane?",
-        "When the solute concentration outside a cell is equal to the solute concentration inside, the cell is said to be in an isotonic solution. What is the result for water movement?",
-        "A red blood cell placed in an isotonic solution will retain its normal shape — why?"
-      ],
-      choiceSets: [
-        { correct: "There is no net movement of water — the amount entering the cell equals the amount leaving", distractors: ["Water moves only into the cell, causing swelling", "Water moves only out of the cell, causing shrinkage", "Water moves in pulses, alternating direction every few seconds"] },
-        { correct: "Water enters and exits the cell at the same rate, so there's no net change in cell volume", distractors: ["All water exits the cell permanently", "All water from outside enters the cell and stays", "Water movement stops completely and osmosis ceases entirely"] }
+      variants: [
+        "In a solution, what is water called? | Solvent | Solute,Catalyst,Substrate",
+        "What is the dissolved substance in a solution called? | Solute | Solvent,Catalyst,Enzyme",
+        "A solution is characterized by what component? | The solute | The solvent,The temperature,The pH"
       ],
       explanation: `
         <ul>
-          <li>In an <b>isotonic</b> solution (iso = equal/same as normal), the solute concentration outside the cell equals the solute concentration inside.</li>
-          <li>The amount of <b>water entering the cell equals the amount leaving</b> — so there is <b>no net movement</b> of water.</li>
-          <li>A red blood cell in this environment retains its normal shape, since there's no net swelling or shrinking.</li>
-          <li>This is different from hypertonic (net water loss → shrinking) and hypotonic (net water gain → swelling/lysis) solutions.</li>
+          <li>In a solution, <b>water is the solvent</b> and the <b>dissolved substance is the solute</b>. A solution is characterized by the solute.</li>
         </ul>
       `
     },
     {
-      templates: [
-        "What is the defining difference between a channel protein and a carrier protein in facilitated diffusion?",
-        "During facilitated diffusion, two types of transport proteins help substances cross the membrane. How do channel proteins and carrier proteins differ in <i>how</i> they move substances?",
-        "Which statement correctly distinguishes how channel proteins move substances across a membrane compared to carrier proteins?"
-      ],
-      choiceSets: [
-        { correct: "Channel proteins form pores/tiny holes that substances pass through directly; carrier proteins bind to the substance and change shape to carry it across", distractors: ["Channel proteins change shape to carry substances across; carrier proteins form permanent open pores", "Channel proteins require ATP to open; carrier proteins never require any interaction with the substance", "Both channel and carrier proteins work identically — the names are interchangeable"] },
-        { correct: "Channel proteins create pores that allow water and small ions to pass through without touching the membrane's hydrophobic interior; carrier proteins physically bind the molecule and change conformation to ferry it across", distractors: ["Channel proteins bind and change shape like an enzyme; carrier proteins are static pores that never move", "Channel proteins only function during active transport; carrier proteins only function during osmosis", "Carrier proteins form the cell wall, while channel proteins form the nucleus"] }
+      variants: [
+        "What determines the concentration of a solution? | Number of solute particles in a given volume | Volume of solvent only,Temperature only,Color of solute",
+        "Solute particles move from where to where? | More concentrated to less concentrated area | Less to more concentrated,Only in one direction randomly,They do not move"
       ],
       explanation: `
         <ul>
-          <li><b>Channel proteins</b> form <b>pores or tiny holes</b> in the membrane, allowing water molecules and small ions to pass through <b>without</b> coming into contact with the hydrophobic interior of the membrane.</li>
-          <li><b>Carrier proteins</b> work differently: they <b>bind</b> with specific ions or molecules, and in doing so, they <b>change shape</b> — this shape change is what carries the substance across the membrane.</li>
-          <li>Both are types of transport proteins involved in <b>facilitated diffusion</b>, which is needed for hydrophilic molecules, charged ions, and relatively large molecules (like glucose) that cannot simply diffuse across the lipid bilayer.</li>
+          <li>More solute particles in a given volume = higher concentration. Solute particles move from <b>more concentrated to less concentrated</b> areas.</li>
         </ul>
       `
     },
     {
-      templates: [
-        "Why do molecules like glucose, charged ions, and other hydrophilic substances need help (via transport proteins) to cross the plasma membrane?",
-        "What property of the plasma membrane prevents large or charged hydrophilic molecules (e.g., glucose, ions) from simply diffusing across it?",
-        "The plasma membrane's interior is hydrophobic (made of lipid tails). How does this property affect the movement of substances like glucose and ions?"
-      ],
-      choiceSets: [
-        { correct: "The hydrophobic interior of the lipid bilayer blocks hydrophilic, charged, or large molecules from passing directly through", distractors: ["These molecules are too small and would leak out too quickly without proteins", "The membrane has no lipids at all in those regions", "These molecules can already pass freely; the proteins are simply optional shortcuts"] },
-        { correct: "The lipid bilayer's hydrophobic core repels charged or large polar molecules, so they require transport proteins (channel or carrier) to cross", distractors: ["The membrane is completely impermeable to everything, including water and oxygen", "Large molecules pass easily but small molecules cannot", "Transport proteins are only needed for molecules leaving the cell, not entering"] }
+      variants: [
+        "What is the unequal distribution of molecules called? | Concentration gradient | Diffusion gradient,Osmotic pressure,Equilibrium state",
+        "When molecules become uniformly distributed, what exists? | Dynamic equilibrium | Static equilibrium,No equilibrium,Permanent gradient"
       ],
       explanation: `
         <ul>
-          <li>The plasma membrane is a <b>lipid bilayer</b> — its interior is <b>hydrophobic</b> (water-fearing), made up of fatty acid tails.</li>
-          <li><b>Hydrophilic molecules, charged ions, and relatively large molecules</b> (like glucose) cannot simply pass through this hydrophobic interior — they would be repelled or blocked.</li>
-          <li>This is why these substances need help from <b>transport proteins</b> (channel proteins or carrier proteins) — this assisted process is called <b>facilitated diffusion</b>.</li>
-          <li>By contrast, small, uncharged, or hydrophobic molecules (like O₂ and CO₂) <i>can</i> diffuse directly through the membrane without help.</li>
+          <li>Unequal distribution = <b>concentration gradient</b>. Uniform distribution = <b>dynamic equilibrium</b> (molecules still move but no net change).</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What is diffusion defined as? | Net movement of particles from greater to lesser concentration | Movement of water only,Movement against concentration gradient,Movement requiring ATP",
+        "Diffusion is responsible for movement of what substances in living systems? | Gases and small uncharged molecules | Large proteins only,Ions only,Water only"
+      ],
+      explanation: `
+        <ul>
+          <li><b>Diffusion</b> = net movement of particles from greater to lesser concentration. In living systems, responsible for movement of <b>gases and small uncharged molecules</b>.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What is osmosis specifically? | Passage of water from high to low water concentration through semi-permeable membrane | Movement of solutes through membrane,Active transport of water,Diffusion of gases",
+        "Water moves in or out of a cell until what condition is met? | Concentration is the same on both sides | Cell bursts,Cell shrinks,Maximum pressure is reached"
+      ],
+      explanation: `
+        <ul>
+          <li><b>Osmosis</b> = passage of water from high to low water concentration through a semi-permeable membrane. Water moves until concentration is the same on both sides.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What are semi-permeable membranes? | Very thin layers allowing some things through but preventing others | Completely impermeable barriers,Fully permeable to all molecules,Only allow water through",
+        "Cell membranes allow which small molecules to pass through? | Oxygen, water, carbon dioxide | Glucose, sucrose, proteins, starch,Ions and charged particles,Large proteins"
+      ],
+      explanation: `
+        <ul>
+          <li>Cell membranes (semi-permeable) allow <b>oxygen, water, carbon dioxide</b> through but do not allow larger molecules like glucose, sucrose, proteins, and starch directly.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What is a hypertonic solution? | Higher solute concentration than inside the cell | Lower solute concentration,Equal solute concentration,No solute at all",
+        "In a hypertonic solution, which way does water flow? | Out of the cell | Into the cell,Equally in and out,No water movement"
+      ],
+      explanation: `
+        <ul>
+          <li><b>Hypertonic</b> = higher solute concentration outside. Net water flow is <b>out of the cell</b>.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What is an isotonic solution? | Same solute concentration as inside the cell | Higher solute concentration,Lower solute concentration,No solute concentration",
+        "In an isotonic solution, what happens to water movement? | Amount entering equals amount leaving | Only enters,Only leaves,Stops completely"
+      ],
+      explanation: `
+        <ul>
+          <li><b>Isotonic</b> = equal solute concentration. Amount of water entering = amount leaving.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What is a hypotonic solution? | Lower solute concentration than inside the cell | Higher solute concentration,Equal solute concentration,No solute at all",
+        "In a hypotonic solution, which way does water flow? | Into the cell | Out of the cell,Equally in and out,No water movement"
+      ],
+      explanation: `
+        <ul>
+          <li><b>Hypotonic</b> = lower solute concentration outside. Net water flow is <b>into the cell</b>.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What happens to a red blood cell in a hypertonic solution? | Shrinks (crenation) | Swells and ruptures,Retains normal shape,Divides immediately",
+        "What happens to a red blood cell in an isotonic solution? | Retains normal shape | Shrinks,Swells and ruptures,Becomes elongated"
+      ],
+      explanation: `
+        <ul>
+          <li>Hypertonic RBC: <b>shrinks (crenation)</b>. Isotonic RBC: <b>retains normal shape</b>.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What happens to a red blood cell in a hypotonic solution? | Becomes swollen and potentially ruptures | Shrinks,Retains normal shape,Becomes dormant",
+        "What is the process called when a cell bursts due to excessive water intake? | Lysis | Crenation,Plasmolysis,Apoptosis"
+      ],
+      explanation: `
+        <ul>
+          <li>Hypotonic RBC: <b>swells and potentially ruptures (lysis)</b>.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "Which molecules need help with diffusion across the membrane? | Hydrophilic molecules, charged ions, and large molecules like glucose | Small hydrophobic molecules,Oxygen and carbon dioxide,Water molecules only",
+        "What is diffusion with the help of transport proteins called? | Facilitated diffusion | Simple diffusion,Osmosis,Active transport"
+      ],
+      explanation: `
+        <ul>
+          <li><b>Hydrophilic molecules, charged ions, and large molecules</b> (like glucose) need help. This assisted diffusion = <b>facilitated diffusion</b>.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "How do channel proteins function? | Form pores allowing water and small ions to pass | Bind and change shape to carry molecules,Only allow large proteins through,Require ATP to open",
+        "How do carrier proteins function? | Bind specific ions/molecules and change shape to carry them across | Form permanent open pores,Only transport water,Break down molecules"
+      ],
+      explanation: `
+        <ul>
+          <li><b>Channel proteins</b> form pores. <b>Carrier proteins</b> bind and change shape to carry molecules across.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "Why can't hydrophilic and charged molecules simply diffuse across the membrane? | The hydrophobic interior of the lipid bilayer blocks them | They are too small,The membrane has no pores,They move too quickly",
+        "What property of the plasma membrane interior prevents certain molecules from passing? | Hydrophobic | Hydrophilic,Neutral,Charged"
+      ],
+      explanation: `
+        <ul>
+          <li>The <b>hydrophobic interior</b> of the lipid bilayer blocks hydrophilic, charged, and large molecules from simple diffusion.</li>
         </ul>
       `
     }
@@ -1250,99 +2052,235 @@ const QUESTION_BANK = {
 
   "Active Transport & Homeostasis": [
     {
-      templates: [
-        "In the sodium-potassium pump, what is the typical direction of movement for sodium (Na⁺) and potassium (K⁺) ions?",
-        "The sodium-potassium pump moves which ions out of the cell, and which ions into the cell?",
-        "Describe the net ion movement performed by the sodium-potassium pump across the plasma membrane."
-      ],
-      choiceSets: [
-        { correct: "Sodium ions are pumped OUT of the cell, and potassium ions are pumped INTO the cell", distractors: ["Potassium ions are pumped out of the cell, and sodium ions are pumped into the cell", "Both sodium and potassium ions are pumped out of the cell simultaneously", "Both sodium and potassium ions are pumped into the cell simultaneously"] },
-        { correct: "Three sodium ions are moved out of the cell while two potassium ions are moved into the cell, both against their concentration gradients", distractors: ["Sodium and potassium simply diffuse passively in opposite directions with no protein involved", "Potassium is pumped out and sodium pumped in, both moving down their gradients", "Sodium is pumped into the cell while chloride is pumped out"] }
+      variants: [
+        "What molecule provides energy for active transport? | ATP (adenosine triphosphate) | RNA,Glucose,Oxygen",
+        "Active transport may require what type of proteins embedded in the membrane? | Transport proteins such as carrier proteins | Channel proteins only,Ribosomal proteins,Structural proteins"
       ],
       explanation: `
         <ul>
-          <li>The <b>sodium-potassium pump</b> moves <b>sodium ions (Na⁺) OUT</b> of the cell and <b>potassium ions (K⁺) IN</b> to the cell.</li>
-          <li>Specifically, <b>3 sodium ions</b> are pumped out for every <b>2 potassium ions</b> pumped in.</li>
-          <li>Both ions are moved <b>against their concentration gradients</b> (from lower to higher concentration), which is why this requires <b>ATP energy</b> — it's "uphill" transport.</li>
-          <li>Normally, sodium is about 10× more concentrated <i>outside</i> the cell, while potassium is about 30× more concentrated <i>inside</i> the cell — the pump maintains this difference.</li>
+          <li>Active transport requires <b>ATP</b> and may require <b>transport proteins</b> such as carrier proteins.</li>
         </ul>
       `
     },
     {
-      templates: [
-        "What is the role of the carrier protein during the sodium-potassium pump cycle?",
-        "How does ATP drive the sodium-potassium pump at the molecular level?",
-        "What happens to the carrier protein in the sodium-potassium pump after it receives a phosphate group from ATP?"
-      ],
-      choiceSets: [
-        { correct: "The carrier protein receives a phosphate group from ATP, which causes it to change shape — this shape change pumps sodium ions out, after which potassium ions bind and the process reverses to bring them in", distractors: ["The carrier protein dissolves after receiving the phosphate group, releasing both ions simultaneously", "ATP directly pushes the ions through a permanent open channel without involving the carrier protein", "The carrier protein only binds potassium; sodium passes through a separate, unrelated channel protein"] },
-        { correct: "ATP transfers a phosphate group to the carrier protein, triggering a conformational (shape) change that ejects sodium ions; the protein then binds potassium ions and reverses shape to bring them inside", distractors: ["The carrier protein uses the phosphate group as a permanent label and never changes shape again", "ATP is consumed only to open a channel protein, which then works passively without further energy", "The phosphate group is used to build a new carrier protein from scratch each cycle"] }
+      variants: [
+        "What are the two types of active transport? | Pump and vesicle transport | Simple and facilitated diffusion,Endocytosis and exocytosis only,Primary and secondary diffusion",
+        "Primary active transport moves what across a membrane? | Ions | Proteins,Lipids,Water"
       ],
       explanation: `
         <ul>
-          <li>First, <b>three sodium ions</b> bind to the carrier protein in the cell membrane.</li>
-          <li>The carrier protein then receives a <b>phosphate group from ATP</b> (when ATP loses this phosphate, energy is released).</li>
-          <li>This causes the carrier protein to <b>change shape</b>, which pumps the three sodium ions <b>out</b> of the cell.</li>
-          <li>Then, <b>two potassium ions</b> bind to the carrier protein, the process reverses, and the potassium ions are pumped <b>into</b> the cell.</li>
-          <li>This cycle is essential for maintaining the <b>membrane potential</b> — the electrical gradient across the cell membrane critical for nerve impulses and muscle contraction.</li>
+          <li>Two types: <b>pump and vesicle transport</b>. Primary active transport moves <b>ions</b> across a membrane.</li>
         </ul>
       `
     },
     {
-      templates: [
-        "What is the difference between phagocytosis and pinocytosis, both of which are forms of endocytosis?",
-        "Endocytosis can occur in different forms depending on what is being taken into the cell. How do phagocytosis and pinocytosis differ?",
-        "If a cell engulfs an entire solid particle using membrane projections called pseudopodia, this is called phagocytosis. What is the equivalent process called when a cell takes in dissolved fluid instead?"
-      ],
-      choiceSets: [
-        { correct: "Phagocytosis is when the cell engulfs a solid particle (using pseudopodia) to form a phagosome; pinocytosis is when the cell membrane folds to take in fluid and dissolved substances", distractors: ["Phagocytosis takes in fluid; pinocytosis takes in solid particles", "Phagocytosis and pinocytosis are identical processes with different names used in plants vs. animals", "Phagocytosis requires receptors on the membrane; pinocytosis never involves the membrane at all"] },
-        { correct: "Phagocytosis (\"cell eating\") engulfs solid particles via pseudopodia forming a food vacuole; pinocytosis (\"cell drinking\") forms a vesicle around extracellular fluid and its dissolved contents", distractors: ["Phagocytosis only happens in plant cells; pinocytosis only happens in animal cells", "Both processes exclusively move substances OUT of the cell", "Pinocytosis engulfs solid particles, while phagocytosis only takes in water"] }
+      variants: [
+        "What does primary active transport create across the membrane? | Difference in charge | No change,Equal concentration,Neutral pH",
+        "Primary active transport uses ATP to move a substance into the cell, and often simultaneously moves what? | A second substance out of the cell | Another substance in,Water only,Nothing else"
       ],
       explanation: `
         <ul>
-          <li><b>Phagocytosis</b> ("cell eating"): the plasma membrane wraps around a <b>solid particle</b> outside the cell using projections called <b>pseudopodia</b>, then pinches off to form a <b>phagosome</b> (food vacuole).</li>
-          <li><b>Pinocytosis</b> ("cell drinking"): the membrane folds to form a vesicle that carries <b>fluid and dissolved substances</b> from the extracellular space.</li>
-          <li>Both are types of <b>endocytosis</b> (moving substances INTO the cell) and both require <b>energy</b>, making them forms of active transport.</li>
-          <li>A third type, <b>receptor-mediated endocytosis</b>, occurs when receptors on the membrane bind to specific particles before the membrane invaginates.</li>
+          <li>Primary active transport creates a <b>difference in charge</b> and often moves a <b>second substance out</b> while moving one in.</li>
         </ul>
       `
     },
     {
-      templates: [
-        "What human disease results from defective or missing LDL receptors, preventing receptor-mediated endocytosis of LDL (\"bad\" cholesterol) from the blood?",
-        "Receptor-mediated endocytosis normally removes LDL cholesterol from the blood. What genetic condition arises when the LDL receptors are defective or absent, leading to dangerously high blood cholesterol?",
-        "Which disease is a real-world example of what happens when receptor-mediated endocytosis fails for a specific target molecule (LDL)?"
-      ],
-      choiceSets: [
-        { correct: "Familial hypercholesterolemia", distractors: ["Down syndrome", "Diabetes insipidus", "Cystic fibrosis"] },
-        { correct: "Familial hypercholesterolemia — a genetic disease where LDL cannot be cleared from the blood", distractors: ["Klinefelter syndrome", "Tay-Sachs disease caused by lysosomal enzyme buildup", "Edwards syndrome"] }
+      variants: [
+        "What does the sodium-potassium pump move out of the cell? | Sodium ions (Na+) | Potassium ions,Calcium ions,Chloride ions",
+        "What does the sodium-potassium pump move into the cell? | Potassium ions (K+) | Sodium ions,Calcium ions,Chloride ions",
+        "How many sodium ions are pumped out per cycle? | Three | Two,Four,One"
       ],
       explanation: `
         <ul>
-          <li><b>Receptor-mediated endocytosis</b> normally removes LDL ("bad" cholesterol) from the blood — receptors on the plasma membrane bind LDL particles, and the membrane invaginates to bring them into the cell.</li>
-          <li>In <b>familial hypercholesterolemia</b>, the LDL receptors are <b>defective or missing entirely</b>.</li>
-          <li>As a result, LDL cannot be cleared from the blood and instead <b>accumulates</b>, leading to life-threatening cholesterol levels.</li>
-          <li>This is a clear example of how a failure in a specific transport mechanism (not transport <i>in general</i>) can cause a targeted, serious disease.</li>
+          <li>The <b>sodium-potassium pump</b> moves <b>3 Na+ out</b> and <b>2 K+ in</b> per cycle.</li>
         </ul>
       `
     },
     {
-      templates: [
-        "What is exocytosis, and how does it relate to vesicle transport?",
-        "Describe the process by which a substance synthesized inside the cell (like a hormone or neurotransmitter) gets released to the outside.",
-        "Which transport process involves a vesicle's membrane fusing with the cell membrane to release its contents outside the cell?"
-      ],
-      choiceSets: [
-        { correct: "Exocytosis — a vesicle containing the substance moves to the cell membrane, the vesicle membrane fuses with it, and the contents are released outside the cell", distractors: ["Endocytosis — the cell membrane folds inward to trap the substance and pull it inside", "Simple diffusion — the substance moves directly through the lipid bilayer with no vesicle involved", "Osmosis — water moves out of the cell carrying the substance with it"] },
-        { correct: "Exocytosis, which is essentially endocytosis in reverse: an internal vesicle's membrane merges with the plasma membrane to expel its cargo", distractors: ["Phagocytosis, where pseudopodia engulf the substance and pull it inward", "Facilitated diffusion through a carrier protein that changes shape", "The sodium-potassium pump, which exports the substance using ATP directly"] }
+      variants: [
+        "Both sodium and potassium ions are moved from areas of what concentration to what? | Lower to higher | Higher to lower,Equal to equal,Random directions",
+        "What provides energy for the sodium-potassium pump? | ATP | Glucose,RNA,Sunlight"
       ],
       explanation: `
         <ul>
-          <li><b>Exocytosis</b> is a type of <b>vesicle transport</b> that moves a substance <b>OUT of the cell</b>.</li>
-          <li>A vesicle containing the substance moves through the cytoplasm to the cell membrane.</li>
-          <li>The vesicle's membrane then <b>fuses</b> with the cell membrane, and the contents are released into the extracellular space.</li>
-          <li>It's described as "endocytosis in reverse" — and like endocytosis, it requires <b>energy</b>, making it a form of <b>active transport</b>.</li>
-          <li>A real-world example: neurotransmitters are released from neurons via exocytosis.</li>
+          <li>Both ions are moved from <b>lower to higher concentration</b> (against gradient). Energy from <b>ATP</b>.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What is the principal ion in fluid outside of cells? | Sodium | Potassium,Calcium,Chloride",
+        "Normal sodium concentrations are about how much higher outside than inside cells? | 10 times | 5 times,20 times,2 times",
+        "What is the principal ion in fluid inside of cells? | Potassium | Sodium,Calcium,Chloride"
+      ],
+      explanation: `
+        <ul>
+          <li><b>Sodium</b> is principal outside (~10× higher). <b>Potassium</b> is principal inside (~30× higher).</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "Normal potassium concentrations are about how much higher inside than outside cells? | 30 times | 10 times,5 times,2 times",
+        "What do the concentration differences of sodium and potassium create? | Electrical gradient across cell membrane | Chemical bond,Physical barrier,Temperature gradient"
+      ],
+      explanation: `
+        <ul>
+          <li>Potassium is ~<b>30× higher inside</b>. These differences create an <b>electrical gradient</b> across the cell membrane.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What is the electrical gradient across the cell membrane called? | Membrane potential | Action potential,Resting potential,Nerve impulse",
+        "What describes movement using energy of the electrochemical gradient from primary transport? | Secondary active transport | Primary active transport,Simple diffusion,Facilitated diffusion"
+      ],
+      explanation: `
+        <ul>
+          <li>The electrical gradient = <b>membrane potential</b>. <b>Secondary active transport</b> uses the electrochemical gradient energy.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What substances can be brought into the cell through secondary active transport? | Amino acids and glucose | Oxygen and carbon dioxide,Proteins and lipids,DNA and RNA",
+        "ATP itself is formed through secondary active transport using what gradient? | Hydrogen ion gradient in the mitochondrion | Sodium gradient in cytoplasm,Potassium gradient outside cell,Calcium gradient in ER"
+      ],
+      explanation: `
+        <ul>
+          <li>Secondary active transport brings <b>amino acids and glucose</b> in. <b>ATP</b> is formed via secondary transport using a <b>H+ gradient in mitochondria</b>.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "Why is controlling membrane potential critical? | For nerve impulse transmission and muscle contraction | For cell division only,For DNA replication only,For protein synthesis only",
+        "What percentage of body energy goes to maintaining membrane potential? | Large percentage | Small percentage,None,All of it"
+      ],
+      explanation: `
+        <ul>
+          <li>Controlling membrane potential is critical for <b>nerve impulse transmission and muscle contraction</b>. A <b>large percentage</b> of body energy maintains this.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What is vesicle transport used for? | Molecules too large to pass through plasma membrane | Small ions only,Water molecules,Gases only",
+        "Does vesicle transport require energy? | Yes | No,Only sometimes,Only for large molecules"
+      ],
+      explanation: `
+        <ul>
+          <li><b>Vesicle transport</b> is for molecules too large to pass through. It <b>requires energy</b>.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What are the two types of vesicle transport? | Endocytosis and exocytosis | Phagocytosis and pinocytosis,Diffusion and osmosis,Primary and secondary transport",
+        "Endocytosis moves substances in which direction? | Into the cell | Out of the cell,Across the nucleus,Into the mitochondria"
+      ],
+      explanation: `
+        <ul>
+          <li>Two types: <b>endocytosis</b> (into cell) and <b>exocytosis</b> (out of cell).</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What happens during endocytosis? | Plasma membrane engulfs substance, vesicle pinches off | Substance diffuses through membrane,Protein channels open,Cell membrane dissolves",
+        "Why is endocytosis used by all cells? | Most important substances are polar and consist of big molecules | Small molecules need help,Only animal cells use it,Only for water transport"
+      ],
+      explanation: `
+        <ul>
+          <li>Endocytosis: membrane <b>engulfs substance, vesicle pinches off</b>. Used by all cells because important substances are <b>polar and big molecules</b>.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What is phagocytosis? | Engulfing an entire cell or solid particle | Engulfing fluid only,Receptor-based uptake only,Passive transport of solids",
+        "What is pinocytosis? | Engulfing fluid | Engulfing solid particles,Receptor-based uptake,Excretion of fluid"
+      ],
+      explanation: `
+        <ul>
+          <li><b>Phagocytosis</b> = engulfing solid particles. <b>Pinocytosis</b> = engulfing fluid.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What is receptor-mediated endocytosis? | Content taken in with help of receptors on plasma membrane | Random engulfing of fluid,Engulfing solid particles,Passive diffusion through receptors",
+        "What happens if receptor-mediated endocytosis is ineffective? | Target stays in tissue fluids/blood and increases in concentration | Target is destroyed immediately,Cell stops functioning,Membrane ruptures"
+      ],
+      explanation: `
+        <ul>
+          <li><b>Receptor-mediated endocytosis</b> uses receptors on the membrane. If ineffective, target <b>stays in fluids and increases in concentration</b>.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What disease is caused by defective or missing LDL receptors? | Familial hypercholesterolemia | Down syndrome,Diabetes,Cystic fibrosis",
+        "What form of cholesterol is removed from blood by receptor-mediated endocytosis? | Low-density lipoprotein (LDL) | High-density lipoprotein,Triglycerides,Cholesterol esters"
+      ],
+      explanation: `
+        <ul>
+          <li><b>Familial hypercholesterolemia</b> = defective/missing LDL receptors. <b>LDL</b> ("bad" cholesterol) is removed by receptor-mediated endocytosis.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What happens during exocytosis? | Vesicle fuses with cell membrane, substance released outside | Substance enters cell,Membrane breaks down,Cell divides",
+        "Where does the vesicle move during exocytosis? | Through cytoplasm to the cell membrane | To the nucleus,To the mitochondria,To the Golgi apparatus"
+      ],
+      explanation: `
+        <ul>
+          <li><b>Exocytosis</b>: vesicle moves to cell membrane, <b>fuses, releases contents outside</b>.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What is homeostasis? | Maintaining stable conditions inside a cell or organism | Breaking down molecules,Producing energy,Cell division",
+        "Why does homeostasis require constant adjustments? | Conditions always change inside and outside the cell | Conditions never change,Only internal conditions change,Only external conditions change"
+      ],
+      explanation: `
+        <ul>
+          <li><b>Homeostasis</b> = maintaining stable conditions. Requires constant adjustments because conditions <b>always change</b>.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What should total sodium intake be less than per day? | 2300 mg/day | 1500 mg/day,3000 mg/day,4700 mg/day",
+        "What is considered low sodium per serving? | Less than 140 mg (5% daily value) | Less than 100 mg,Less than 200 mg,Less than 50 mg"
+      ],
+      explanation: `
+        <ul>
+          <li>Sodium intake < <b>2300 mg/day</b>. Low sodium = < <b>140 mg/serving</b> (5% daily value).</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What should total potassium intake be per day? | 4700 mg/day | 2300 mg/day,3000 mg/day,1500 mg/day",
+        "Which foods are especially high in potassium? | Potatoes, bananas, oranges, apricots, plums, leafy greens, tomatoes, lima beans, avocado | Only meat products,Only dairy products,Only grains"
+      ],
+      explanation: `
+        <ul>
+          <li>Potassium intake = <b>4700 mg/day</b>. High in: <b>potatoes, bananas, oranges, apricots, plums, leafy greens, tomatoes, lima beans, avocado</b>.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "Besides fruits and vegetables, what other foods have substantial potassium? | Fish, meat, poultry, whole grains | Only dairy,Only processed foods,Only sugars",
+        "Where is most salt in the diet found? | Processed foods or added with salt shaker | Only in fresh vegetables,Only in water,Only in supplements"
+      ],
+      explanation: `
+        <ul>
+          <li>Other potassium sources: <b>fish, meat, poultry, whole grains</b>. Most salt is in <b>processed foods</b> or added with shaker.</li>
         </ul>
       `
     }
@@ -1350,60 +2288,200 @@ const QUESTION_BANK = {
 
   "Mitosis": [
     {
-      templates: [
-        "During which phase of mitosis do chromosomes align along the metaphase plate, with the cell checking that all kinetochores are correctly attached before proceeding?",
-        "The cell's \"checkpoint\" — verifying that sister chromatids are properly attached to spindle fibres before division proceeds — occurs during which phase?",
-        "Which phase of mitosis is defined by chromosomes lining up along a central, theoretical line, with the centrosomes positioned at opposite ends of the cell?"
-      ],
-      choiceSets: [
-        { correct: "Metaphase", distractors: ["Prophase", "Anaphase", "Telophase"] },
-        { correct: "Metaphase — chromosomes align on the metaphase plate and kinetochore attachment is verified", distractors: ["Prometaphase — the nuclear envelope is still breaking down at this point", "Anaphase — chromatids are already being pulled apart by this stage", "Cytokinesis — this is the division of the cytoplasm, occurring after telophase begins"] }
+      variants: [
+        "What does mitosis describe? | Division of one cell into two identical daughter cells | Division into four cells,Division into non-identical cells,Fusion of two cells",
+        "How many daughter cells does mitosis produce? | Two | One,Three,Four"
       ],
       explanation: `
         <ul>
-          <li>During <b>metaphase</b>, chromosomes align along a theoretical line called the <b>metaphase plate</b>, and the centrosomes are positioned at opposite ends of the cell.</li>
-          <li>At this stage, the cell performs a <b>checkpoint</b>: it verifies that all chromosomes are properly aligned and that their <b>kinetochores</b> are correctly attached to spindle fibres.</li>
-          <li>This ensures sister chromatids will be split <b>evenly</b> between the two daughter cells. If there's an error in alignment or attachment, the cell <b>halts</b> further progress until it's fixed.</li>
-          <li>This checkpoint is important clinically: errors here are the most common source of mitotic errors leading to unequal chromosome distribution.</li>
+          <li><b>Mitosis</b> describes the division of <b>one cell into two identical daughter cells</b>.</li>
         </ul>
       `
     },
     {
-      templates: [
-        "What happens during anaphase of mitosis?",
-        "Sister chromatids are pulled to opposite poles of the cell, and spindle fibres not attached to chromatids elongate the cell — this describes which phase of mitosis?",
-        "During which stage of mitosis do spindle fibres contract, breaking sister chromatids apart at the centromere?"
-      ],
-      choiceSets: [
-        { correct: "Anaphase — sister chromatids are separated and pulled to opposite poles, while the cell elongates in preparation for division", distractors: ["Prophase — chromatin begins condensing into chromosomes for the first time", "Metaphase — chromosomes are still aligning at the cell's center, not yet separating", "Telophase — the nuclear envelopes are reforming, separation has already finished"] },
-        { correct: "Anaphase", distractors: ["Prometaphase", "Telophase", "Cytokinesis"] }
+      variants: [
+        "What is each chromosome made of? | Two genetically identical chromatids joined by a centromere | One chromatid,Three chromatids,Four chromatids",
+        "During DNA replication, genetic material is loosely packed as what? | Chromatin | Chromosomes,Chromatids,Nucleosomes"
       ],
       explanation: `
         <ul>
-          <li>During <b>anaphase</b>, the spindle fibres <b>contract</b>, breaking the sister chromatids apart at the <b>centromere</b> and moving them to <b>opposite poles</b> of the cell.</li>
-          <li>Spindle fibres that are <i>not</i> attached to chromatids <b>elongate</b> the cell, preparing it for division.</li>
-          <li>This is the stage where genetically identical sister chromatids are physically separated, becoming individual chromosomes for each future daughter cell.</li>
-          <li>Errors during this stage (or the metaphase checkpoint that precedes it) can cause unequal chromosome distribution.</li>
+          <li>Each chromosome = <b>two genetically identical chromatids</b> joined by a <b>centromere</b>. During replication, material is loosely packed as <b>chromatin</b>.</li>
         </ul>
       `
     },
     {
-      templates: [
-        "If errors during mitosis cause one daughter cell to receive an extra chromosome while the other receives one too few, what typically happens to each cell?",
-        "After a mitotic error in chromosome distribution, one daughter cell ends up missing a chromosome while the other has an extra one. What is the typical fate of each cell, according to clinical context?",
-        "Why is a cell with an extra chromosome (from a mitotic error) potentially more dangerous than a cell missing a chromosome?"
-      ],
-      choiceSets: [
-        { correct: "The cell missing a chromosome usually dies, while the cell with an extra chromosome can survive and potentially cause problems (e.g., contribute to cancer if the extra chromosome carries growth-promoting genes)", distractors: ["Both cells immediately die regardless of which chromosome is missing or extra", "The cell with the extra chromosome dies, while the cell missing a chromosome survives normally with no consequences", "Both cells continue functioning identically with no difference in outcome"] },
-        { correct: "The chromosome-deficient cell typically dies; the chromosome-excess cell can survive, and if the extra chromosome carries growth-related genes, it may contribute to cancer development (though this alone is not sufficient to cause cancer)", distractors: ["Both cells undergo apoptosis at the same rate, with no meaningful difference between them", "The extra chromosome is automatically destroyed by lysosomes before causing any issue", "The cell missing a chromosome becomes cancerous, while the other cell dies"] }
+      variants: [
+        "Why does DNA need to be more tightly packed during mitosis? | For easier separation in anaphase | To produce more energy,To protect from damage,To increase size",
+        "At the start of prophase, what begins condensing into chromosomes? | Chromatin | Chromatids,Centromeres,Nucleoli"
       ],
       explanation: `
         <ul>
-          <li>Errors in mitosis typically occur during <b>metaphase</b> — due to misalignment of chromosomes on the metaphase plate, or failure of spindle fibres to attach to a kinetochore.</li>
-          <li>This results in daughter cells with an <b>unequal distribution</b> of chromosomes — one cell ends up with one too many, the other with one too few.</li>
-          <li>The cell <b>missing</b> a chromosome <b>usually dies</b>.</li>
-          <li>The cell with the <b>extra</b> chromosome <b>can survive</b> — and if that extra chromosome carries genes that promote cell growth, this <i>may</i> contribute to <b>cancer</b> via constitutive activation of growth signaling pathways.</li>
-          <li><b>Important caveat:</b> the mechanism of cancer is complex and requires multiple genetic "hits" — an extra chromosome alone is not sufficient to cause cancer.</li>
+          <li>DNA needs tighter packing <b>for easier separation in anaphase</b>. At prophase start, <b>chromatin condenses into chromosomes</b>.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What are mitotic spindles made from? | Microtubules | Actin filaments,Intermediate filaments,Lipid bilayers",
+        "What do mitotic spindles aid in? | Organisation and arrangement of chromosomes | Protein synthesis,Energy production,Waste removal"
+      ],
+      explanation: `
+        <ul>
+          <li>Mitotic spindles are structures made from <b>microtubules</b> that aid in <b>organisation and arrangement of chromosomes</b>.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What organelle do the spindles attach to? | Centrosome | Nucleus,Mitochondrion,Golgi apparatus",
+        "How many centrosomes does each cell in mitosis have? | Two | One,Three,Four"
+      ],
+      explanation: `
+        <ul>
+          <li>Spindles attach to the <b>centrosome</b>. Each cell in mitosis has <b>two centrosomes</b>.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "During prophase, what do the centrosomes begin to do? | Move in opposite directions | Fuse together,Divide into four,Disappear",
+        "In prometaphase, what begins to break down? | Nuclear envelope | Cell membrane,Mitochondrial membrane,Golgi membrane"
+      ],
+      explanation: `
+        <ul>
+          <li>During prophase, centrosomes <b>move in opposite directions</b>. In prometaphase, the <b>nuclear envelope breaks down</b>.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "Where do spindle fibres attach to chromosomes? | Kinetochore | Centromere only,Telomere,Nucleolus",
+        "What is the kinetochore? | An area of the centromere on each sister chromatid | Part of the nuclear envelope,Type of microtubule,Protein in cytoplasm"
+      ],
+      explanation: `
+        <ul>
+          <li>Spindle fibres attach at the <b>kinetochore</b> — an area of the <b>centromere on each sister chromatid</b>.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "Sister chromatids are attached to spindles originating from where? | Opposite centrosomes | Same centrosome,Nuclear envelope,Cell membrane",
+        "What does this linkage do? | Links the two sister chromatids together | Separates them immediately,Breaks the centromere,Fuses the chromatids"
+      ],
+      explanation: `
+        <ul>
+          <li>Sister chromatids attach to spindles from <b>opposite centrosomes</b>, linking the two together.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "During metaphase, where do chromosomes align? | Metaphase plate | Nuclear envelope,Cell membrane,Centrosome",
+        "Where are centrosomes located during metaphase? | At opposite ends of the cell | At the center,Only at one end,Outside the cell"
+      ],
+      explanation: `
+        <ul>
+          <li>During metaphase, chromosomes align on the <b>metaphase plate</b>. Centrosomes are at <b>opposite ends</b>.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What does the cell check during metaphase? | All chromosomes aligned, kinetochores correctly attached | DNA replication complete,Protein synthesis active,Energy levels sufficient",
+        "What ensures sister chromatids are split evenly? | Correct alignment and kinetochore attachment | Random separation,Size of chromatids,Number of centrosomes"
+      ],
+      explanation: `
+        <ul>
+          <li>The cell checks that <b>all chromosomes are aligned</b> and <b>kinetochores correctly attached</b> to ensure even splitting.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What happens if there's an error in chromosomal alignment or spindle attachment? | Cell halts further progress until fixed | Continues immediately,Reverses to prophase,Divides anyway",
+        "During anaphase, what happens to sister chromatids? | Pulled to opposite ends of the cell | Fused together,Broken down,Left in center"
+      ],
+      explanation: `
+        <ul>
+          <li>Errors cause the cell to <b>halt until fixed</b>. During anaphase, sister chromatids are <b>pulled to opposite ends</b>.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What happens to spindle fibres not attached to chromatids during anaphase? | Elongate the cell | Contract immediately,Break down,Attach to cell membrane",
+        "During telophase, what begins to reappear? | Two nuclei | Chromosomes condensing,Spindle fibres forming,Centrosomes dividing"
+      ],
+      explanation: `
+        <ul>
+          <li>Unattached spindle fibres <b>elongate the cell</b>. In telophase, <b>two nuclei reform</b>.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What happens to chromosomes during telophase? | De-condense | Condense further,Break apart,Duplicate",
+        "What happens to mitotic spindle fibres during telophase? | Broken down | Replicated,Condensed,Activated"
+      ],
+      explanation: `
+        <ul>
+          <li>In telophase, chromosomes <b>de-condense</b> and spindle fibres are <b>broken down</b>.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What is cytokinesis? | Division of cytoplasm to form two new cells | Division of nucleus,Replication of DNA,Synthesis of proteins",
+        "When does cytokinesis begin? | Between anaphase and telophase | Before prophase,During metaphase,After cell division completes"
+      ],
+      explanation: `
+        <ul>
+          <li><b>Cytokinesis</b> = division of cytoplasm to form two new cells. Begins <b>between anaphase and telophase</b>.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What pinches the cytoplasm during cytokinesis? | Actin ring | Myosin ring,Tubulin ring,Collagen ring",
+        "Along what structure does the actin ring pinch? | Cleavage furrow | Metaphase plate,Nuclear envelope,Cell membrane"
+      ],
+      explanation: `
+        <ul>
+          <li>An <b>actin ring</b> pinches the cytoplasm along a <b>cleavage furrow</b>.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "When do errors in mitosis typically occur? | During metaphase | During prophase only,During telophase only,During cytokinesis only",
+        "What usually causes errors in mitosis? | Misalignment on metaphase plate or failure of spindle attachment | DNA replication errors,Protein synthesis errors,Energy depletion"
+      ],
+      explanation: `
+        <ul>
+          <li>Errors typically occur during <b>metaphase</b> due to <b>misalignment</b> or <b>spindle attachment failure</b>.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What can result from mitotic errors? | Unequal distribution of chromosomes | Equal distribution,No distribution,Extra organelles",
+        "What typically happens to the cell missing a chromosome? | Usually dies | Survives normally,Becomes cancerous immediately,Divides faster"
+      ],
+      explanation: `
+        <ul>
+          <li>Errors cause <b>unequal chromosome distribution</b>. The cell <b>missing a chromosome usually dies</b>.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "If an extra chromosome carries genes promoting cell growth, what may it lead to? | Cancer | Immediate cell death,No effect,Enhanced immunity",
+        "Is an extra chromosome alone sufficient to cause cancer? | No | Yes,Only in plant cells,Only in prokaryotes"
+      ],
+      explanation: `
+        <ul>
+          <li>Extra chromosome with growth genes <b>may lead to cancer</b>, but cancer is complex and requires <b>several genetic hits</b>. An extra chromosome alone is <b>not sufficient</b>.</li>
         </ul>
       `
     }
@@ -1411,105 +2489,253 @@ const QUESTION_BANK = {
 
   "Meiosis": [
     {
-      templates: [
-        "What is the final result of meiosis in terms of the number and genetic identity of the daughter cells produced?",
-        "Meiosis consists of two successive divisions starting from one diploid cell. What is the end product?",
-        "Why is meiosis described as producing cells that are both \"haploid\" and \"non-identical,\" unlike mitosis?"
-      ],
-      choiceSets: [
-        { correct: "Four non-identical haploid daughter cells, each with half the usual chromosome number", distractors: ["Two identical diploid daughter cells", "Four identical diploid daughter cells", "Two non-identical haploid daughter cells"] },
-        { correct: "Four genetically distinct haploid gametes, each containing a single copy of each chromosome", distractors: ["Two genetically identical diploid cells, just like in mitosis", "A single tetraploid cell with double the normal chromosome number", "Four identical haploid cells with no genetic variation between them"] }
+      variants: [
+        "What does meiosis produce? | Gametes (sperm and egg cells) | Somatic cells,Identical daughter cells,Protein molecules",
+        "How many successive divisions does meiosis consist of? | Two | One,Three,Four"
       ],
       explanation: `
         <ul>
-          <li>Meiosis begins with a single <b>diploid</b> cell (two copies of each chromosome).</li>
-          <li>After two rounds of division — <b>meiosis I</b> and <b>meiosis II</b> — the result is <b>four non-identical haploid gametes</b>, each with <b>half</b> the usual chromosome number (a single copy of each chromosome).</li>
-          <li>This contrasts with <b>mitosis</b>, which produces <b>two genetically identical diploid</b> daughter cells.</li>
-          <li>The genetic variation between the four gametes comes from <b>crossing over</b> (in prophase I) and <b>independent assortment</b> (in metaphase I).</li>
+          <li><b>Meiosis</b> produces <b>gametes</b> (sperm and egg cells) and consists of <b>two successive divisions</b>.</li>
         </ul>
       `
     },
     {
-      templates: [
-        "Why is Meiosis I referred to as \"reductional division\"?",
-        "What key event distinguishes Meiosis I from Meiosis II, earning Meiosis I the name \"reductional division\"?",
-        "During Meiosis I, what happens to homologous chromosomes, and why does this justify calling it a \"reductional\" division?"
-      ],
-      choiceSets: [
-        { correct: "Because it reduces the chromosome number by half — homologous chromosomes are separated, with each daughter cell receiving one chromosome from each pair", distractors: ["Because it doubles the chromosome number before the cell divides", "Because it removes the nucleus entirely from each daughter cell", "Because it reduces the number of organelles, not chromosomes, by half"] },
-        { correct: "Meiosis I separates homologous chromosome pairs, halving the chromosome number — each resulting cell gets one chromosome from each original pair", distractors: ["Meiosis I separates sister chromatids, which is the same thing that happens in Meiosis II", "Meiosis I duplicates the genome, doubling the number of chromosomes per cell", "Meiosis I only affects the cytoplasm, leaving chromosome number unchanged"] }
+      variants: [
+        "How many daughter cells does meiosis produce? | Four | Two,Three,Six",
+        "Are the daughter cells from meiosis identical or non-identical? | Non-identical | Identical,Partially identical,Clones"
       ],
       explanation: `
         <ul>
-          <li><b>Meiosis I</b> is called <b>"reductional division"</b> because it <b>reduces the chromosome number by half</b>.</li>
-          <li>During this phase, <b>homologous chromosomes</b> (the matching pairs — one from each parent) are <b>separated</b>, with each daughter cell receiving <b>one chromosome from each pair</b>.</li>
-          <li>Key sub-stages: in <b>Prophase I</b>, <b>crossing over</b> occurs at chiasmata (exchanging genetic material between homologous chromosomes); in <b>Metaphase I</b>, <b>independent assortment</b> randomly orients maternal/paternal chromosomes.</li>
-          <li>By contrast, <b>Meiosis II</b> is "equational division" — chromosome number stays the same, but sister chromatids are separated.</li>
+          <li>Meiosis produces <b>four non-identical haploid daughter cells</b>.</li>
         </ul>
       `
     },
     {
-      templates: [
-        "What genetic event occurs during Prophase I of meiosis, where homologous chromosomes exchange genetic material at points called chiasmata?",
-        "Crossing over — the exchange of genetic material between homologous chromosomes — occurs at which stage of meiosis, and what is the significance of this event?",
-        "At what stage of meiosis does crossing over occur, and what does it contribute to the resulting gametes?"
-      ],
-      choiceSets: [
-        { correct: "Prophase I — crossing over creates new allele combinations, increasing genetic diversity", distractors: ["Metaphase II — crossing over here duplicates the entire genome", "Telophase I — crossing over here removes one set of chromosomes entirely", "Anaphase II — crossing over here fuses sister chromatids permanently"] },
-        { correct: "It occurs during Prophase I, at points called chiasmata, and it promotes genetic diversity by creating new combinations of alleles", distractors: ["It occurs during Cytokinesis II, and it has no effect on genetic diversity", "It occurs during Prometaphase I, and it reduces genetic diversity by eliminating mismatched alleles", "It occurs only in Meiosis II, and it duplicates chromosomes before the final division"] }
+      variants: [
+        "What does each daughter cell contain? | A single copy of each chromosome | Two copies,Three copies,No chromosomes",
+        "Meiosis begins with what type of cell? | Diploid cell | Haploid cell,Tetraploid cell,Triploid cell"
       ],
       explanation: `
         <ul>
-          <li><b>Crossing over</b> occurs during <b>Prophase I</b> of meiosis, at points called <b>chiasmata</b>.</li>
-          <li>Here, <b>homologous chromosomes exchange genetic material</b>, creating <b>new allele combinations</b>.</li>
-          <li>This is one of the two major sources of genetic diversity in meiosis (the other being <b>independent assortment</b> during Metaphase I).</li>
-          <li>This is also when chromosomes begin to <b>replicate and condense</b>, and the nuclear envelope starts breaking down.</li>
+          <li>Each daughter cell contains <b>a single copy of each chromosome</b>. Meiosis begins with a <b>diploid cell</b> (two copies of each chromosome).</li>
         </ul>
       `
     },
     {
-      templates: [
-        "What is \"nondisjunction,\" and what is its consequence for the resulting gametes?",
-        "Failure of chromosomes to separate correctly during anaphase (of either meiosis I or II) is called what, and what does it lead to?",
-        "Which term describes a meiotic error where chromosomes fail to separate properly, resulting in gametes with an abnormal chromosome number (aneuploidy)?"
-      ],
-      choiceSets: [
-        { correct: "Nondisjunction — chromosomes fail to separate correctly during anaphase, leading to gametes with too many or too few chromosomes (aneuploidy)", distractors: ["Crossing over — chromosomes exchange segments, leading to gametes with balanced chromosome numbers", "Cytokinesis — the cytoplasm divides unevenly, but chromosome number remains normal", "Independent assortment — chromosomes are randomly oriented, but always end up with correct numbers"] },
-        { correct: "Nondisjunction, which can occur in meiosis I or II and results in gametes with an abnormal number of chromosomes", distractors: ["Anaphase lag, which always results in a perfectly balanced translocation", "Reciprocal translocation, which never affects chromosome count, only structure", "Robertsonian translocation, which only happens during mitosis, not meiosis"] }
+      variants: [
+        "How many stages are in each meiotic division? | Six | Four,Five,Seven",
+        "What are the six stages of each meiotic division? | Prophase, prometaphase, metaphase, anaphase, telophase, cytokinesis | Interphase, prophase, metaphase, anaphase, telophase, cytokinesis,Prophase, metaphase, anaphase, telophase only,G1, S, G2, M phases"
       ],
       explanation: `
         <ul>
-          <li><b>Nondisjunction</b> is the <b>failure of chromosomes to separate correctly during anaphase</b> — this can happen in either <b>meiosis I or meiosis II</b>.</li>
-          <li>The result is gametes with <b>too many or too few chromosomes</b> — a condition called <b>aneuploidy</b>.</li>
-          <li>Common disorders caused by errors in chromosome <i>number</i> (like nondisjunction) include <b>trisomies</b> such as Down syndrome, Edwards syndrome, and Patau syndrome.</li>
-          <li>A related error is <b>anaphase lag</b>, where a chromosome lags behind during division and fails to be included in either resulting nucleus, also resulting in missing genetic material.</li>
-          <li>This is distinct from <b>translocations</b>, which are errors in chromosome <i>structure</i> (segments rearranged), not number.</li>
+          <li>Each division has <b>six stages</b>: prophase, prometaphase, metaphase, anaphase, telophase, and cytokinesis.</li>
         </ul>
       `
     },
     {
-      templates: [
-        "What is the difference between a reciprocal translocation and a Robertsonian translocation?",
-        "Two types of chromosomal structural translocations exist. How does the exchange of segments between two non-homologous chromosomes (reciprocal) differ from the fusion of two acrocentric chromosomes at the centromere (Robertsonian)?",
-        "Which type of translocation involves the fusion of two acrocentric chromosomes at the centromere, as opposed to an exchange of segments between two non-homologous chromosomes?"
-      ],
-      choiceSets: [
-        { correct: "Reciprocal translocation involves an exchange of segments between two non-homologous chromosomes; Robertsonian translocation involves the fusion of two acrocentric chromosomes at the centromere", distractors: ["Reciprocal translocation involves fusion at the centromere; Robertsonian translocation involves segment exchange between non-homologous chromosomes", "Both types of translocation are identical and only differ by which chromosome pair is involved", "Reciprocal translocation only occurs in gametes; Robertsonian translocation only occurs in somatic cells"] },
-        { correct: "Reciprocal = segment exchange between two non-homologous chromosomes; Robertsonian = fusion of two acrocentric chromosomes at their centromeres", distractors: ["Reciprocal = loss of an entire chromosome; Robertsonian = duplication of an entire chromosome", "Reciprocal = error in chromosome number; Robertsonian = error during cytokinesis only", "Reciprocal and Robertsonian both refer to the same nondisjunction event, just at different meiotic phases"] }
+      variants: [
+        "Why is meiosis I called 'reductional division'? | Reduces chromosome number by half | Doubles chromosome number,Removes all chromosomes,Changes chromosome shape",
+        "During meiosis I, what are separated? | Homologous chromosomes | Sister chromatids,Centromeres only,Spindle fibres"
       ],
       explanation: `
         <ul>
-          <li>Both are types of <b>chromosomal structural abnormalities</b> (errors in chromosome <i>structure</i>, as opposed to nondisjunction, which is an error in chromosome <i>number</i>).</li>
-          <li><b>Reciprocal translocation:</b> involves the <b>exchange of chromosome segments between two non-homologous chromosomes</b>.</li>
-          <li><b>Robertsonian translocation:</b> involves the <b>fusion of two acrocentric chromosomes at the centromere</b>.</li>
-          <li>Translocations can be <b>balanced</b> (no genetic material lost or gained — often no symptoms) or <b>unbalanced</b> (material lost or gained — can cause developmental issues or miscarriage).</li>
+          <li>Meiosis I is <b>"reductional division"</b> because it <b>reduces chromosome number by half</b> by separating <b>homologous chromosomes</b>.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What does each daughter cell receive during meiosis I? | One chromosome from each homologous pair | Both chromosomes from each pair,No chromosomes,Random chromosomes",
+        "During prophase I, what happens to chromosomes? | Replicate and condense | De-condense,Break apart,Fuse together"
+      ],
+      explanation: `
+        <ul>
+          <li>Each daughter cell receives <b>one chromosome from each homologous pair</b>. In prophase I, chromosomes <b>replicate and condense</b>.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What occurs at chiasmata during prophase I? | Crossing over | DNA replication,Chromosome separation,Spindle formation",
+        "What is crossing over? | Exchange of genetic material between homologous chromosomes | Fusion of chromosomes,Breakdown of nuclear envelope,Attachment of spindle fibres"
+      ],
+      explanation: `
+        <ul>
+          <li><b>Crossing over</b> at chiasmata = <b>exchange of genetic material</b> between homologous chromosomes.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What does crossing over create? | New allele combinations | Identical alleles only,Missing alleles,Extra chromosomes",
+        "What does crossing over promote? | Genetic diversity | Genetic uniformity,Chromosome loss,Cell death"
+      ],
+      explanation: `
+        <ul>
+          <li>Crossing over creates <b>new allele combinations</b> and promotes <b>genetic diversity</b>.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "During metaphase I, what aligns along the cell's equator? | Homologous chromosomes | Sister chromatids,Single chromatids,Spindle fibres",
+        "What occurs during metaphase I? | Independent assortment | Crossing over,Chromosome replication,Sister chromatid separation"
+      ],
+      explanation: `
+        <ul>
+          <li>During metaphase I, <b>homologous chromosomes align</b> and <b>independent assortment</b> occurs.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What is independent assortment? | Random orientation of maternal and paternal chromosomes to either pole | Chromosomes aligning in order,Spindle fibres attaching randomly,Nuclear envelope reforming",
+        "What does independent assortment enhance? | Genetic diversity | Genetic stability,Chromosome number,Cell size"
+      ],
+      explanation: `
+        <ul>
+          <li><b>Independent assortment</b> = random orientation of maternal/paternal chromosomes to either pole, enhancing <b>genetic diversity</b>.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "During anaphase I, what are pulled toward opposite poles? | Homologous chromosomes | Sister chromatids,Centromeres only,Nuclear envelopes",
+        "Do homologous chromosomes in anaphase I still consist of sister chromatids? | Yes | No,Only sometimes,Only in meiosis II"
+      ],
+      explanation: `
+        <ul>
+          <li>In anaphase I, <b>homologous chromosomes</b> (still consisting of two sister chromatids) are pulled to opposite poles.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What happens during telophase I? | Nuclear envelopes reform around chromosomes at poles | Chromosomes condense,Spindle fibres form,Cell membrane breaks",
+        "What happens during cytokinesis I? | Cytoplasm divides, resulting in two haploid daughter cells | Chromosomes replicate,Nuclear envelope breaks down,Spindle fibres attach"
+      ],
+      explanation: `
+        <ul>
+          <li>Telophase I: <b>nuclear envelopes reform</b>. Cytokinesis I: <b>cytoplasm divides</b>, producing two haploid daughter cells.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "Why is meiosis II called 'equational division'? | Chromosome number remains unchanged | Chromosome number is halved,Chromosome number doubles,Chromosomes are eliminated",
+        "During meiosis II, what are separated? | Sister chromatids | Homologous chromosomes,Centromeres only,Spindle fibres"
+      ],
+      explanation: `
+        <ul>
+          <li>Meiosis II is <b>"equational division"</b> — chromosome number <b>remains unchanged</b>. <b>Sister chromatids</b> are separated.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "How many genetically distinct haploid gametes result from meiosis II? | Four | Two,Three,Six",
+        "During prophase II, what breaks down? | Nuclear envelope | Cell membrane,Mitochondrial membrane,Golgi apparatus"
+      ],
+      explanation: `
+        <ul>
+          <li>Meiosis II results in <b>four genetically distinct haploid gametes</b>. Prophase II: <b>nuclear envelope breaks down</b>.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "During metaphase II, how do chromosomes align? | In single file along the equator | In pairs,Randomly scattered,At opposite poles",
+        "During anaphase II, what is pulled to opposite poles? | Sister chromatids | Homologous chromosomes,Centromeres only,Spindle fibres"
+      ],
+      explanation: `
+        <ul>
+          <li>Metaphase II: chromosomes align <b>in single file</b>. Anaphase II: <b>sister chromatids pulled to opposite poles</b>.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "During telophase II, what reforms around separated chromatids? | Nuclear envelopes | Cell membranes,Mitochondria,Ribosomes",
+        "What is the final result of cytokinesis II? | Four non-identical haploid cells | Two diploid cells,Four identical cells,Two haploid cells"
+      ],
+      explanation: `
+        <ul>
+          <li>Telophase II: <b>nuclear envelopes reform</b>. Cytokinesis II: <b>four non-identical haploid cells</b>.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What are the two main causes of errors in chromosome number during meiosis? | Nondisjunction and anaphase lag | Crossing over and independent assortment,Replication errors and translation errors,Mutation and deletion",
+        "What does nondisjunction lead to? | Aneuploidy | Euploidy,Polyploidy,Haploidy"
+      ],
+      explanation: `
+        <ul>
+          <li>Errors in chromosome number are caused by <b>nondisjunction</b> and <b>anaphase lag</b>, leading to <b>aneuploidy</b>.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What is nondisjunction? | Failure of chromosomes to separate correctly during anaphase | Chromosomes replicating too fast,Spindle fibres breaking,Nuclear envelope failing to break down",
+        "In which phases can nondisjunction occur? | Meiosis I or II | Only meiosis I,Only meiosis II,Only mitosis"
+      ],
+      explanation: `
+        <ul>
+          <li><b>Nondisjunction</b> = failure of chromosomes to separate correctly during anaphase. Can occur in <b>meiosis I or II</b>.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What is anaphase lag? | Chromosome lags behind and fails to be included in nucleus | Chromosomes moving too quickly,Spindle fibres contracting too fast,Cell dividing too slowly",
+        "What does anaphase lag result in? | Missing genetic material in one daughter cell | Extra genetic material,No change,Cell death immediately"
+      ],
+      explanation: `
+        <ul>
+          <li><b>Anaphase lag</b> = chromosome lags behind, failing to be included in the nucleus, resulting in <b>missing genetic material</b>.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What is aneuploidy? | Abnormal number of chromosomes | Normal number,Double the number,Half the number",
+        "Which disorders are caused by errors in chromosome number? | Down syndrome, Edwards syndrome, Patau syndrome | Cystic fibrosis, sickle cell anemia, hemophilia,Color blindness, albinism, dwarfism,Huntington's disease, muscular dystrophy, Tay-Sachs"
+      ],
+      explanation: `
+        <ul>
+          <li><b>Aneuploidy</b> = abnormal chromosome number. Common disorders: <b>Down, Edwards, Patau syndrome</b>.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What is a reciprocal translocation? | Exchange of chromosome segments between two non-homologous chromosomes | Fusion of chromosomes at centromere,Duplication of a chromosome,Deletion of a chromosome segment",
+        "What is a Robertsonian translocation? | Fusion of two acrocentric chromosomes at the centromere | Exchange between non-homologous chromosomes,Breakage of chromosome arms,Insertion of foreign DNA"
+      ],
+      explanation: `
+        <ul>
+          <li><b>Reciprocal translocation</b> = exchange between two non-homologous chromosomes. <b>Robertsonian</b> = fusion of two acrocentric chromosomes at centromere.</li>
+        </ul>
+      `
+    },
+    {
+      variants: [
+        "What is a balanced translocation? | No genetic material lost or gained | Material lost only,Material gained only,Both lost and gained",
+        "What can unbalanced translocations lead to? | Developmental issues or miscarriage | Enhanced immunity,Increased fertility,No effect"
+      ],
+      explanation: `
+        <ul>
+          <li>Translocations can be <b>balanced</b> (no material lost/gained) or <b>unbalanced</b> (can cause developmental issues or miscarriage).</li>
         </ul>
       `
     }
   ]
 
 };
+
 </script>
+
 
 <script>
 /* ============================================================
@@ -1627,20 +2853,22 @@ function buildQuiz(){
   state.selectedTopics.forEach(topic=>{
     const bank = QUESTION_BANK[topic];
     bank.forEach((q, idx)=>{
-      const template = pickRandom(q.templates);
-      const choiceSet = pickRandom(q.choiceSets);
+      // pick a random variant string and parse it
+      const variant = pickRandom(q.variants);
+      const [questionText, correct, distractorsStr] = variant.split(" | ");
+      const distractors = distractorsStr.split(",").map(d => d.trim());
 
       // build choice list: correct + distractors, then shuffle
       const allChoices = [
-        { text: choiceSet.correct, isCorrect: true },
-        ...choiceSet.distractors.map(d=>({ text: d, isCorrect: false }))
+        { text: correct.trim(), isCorrect: true },
+        ...distractors.map(d => ({ text: d, isCorrect: false }))
       ];
       const shuffledChoices = shuffle(allChoices);
 
       state.questions.push({
         topic: topic,
-        originalIndex: idx + 1,    // "true original exam number" within its topic
-        questionText: template,
+        originalIndex: idx + 1,
+        questionText: questionText.trim(),
         choices: shuffledChoices,
         explanation: q.explanation
       });
@@ -1683,6 +2911,11 @@ function renderQuestion(){
 function handleAnswer(chosenIndex){
   const q = state.questions[state.current];
   const choices = document.querySelectorAll('#choicesList .choice');
+
+  // Prevent multiple answers for the same question
+  if(choices.length > 0 && choices[0].classList.contains('disabled')){
+    return;
+  }
 
   // disable all
   choices.forEach(c=> c.classList.add('disabled'));
@@ -1940,6 +3173,26 @@ function showScreen(name){
   document.getElementById(`screen-${name}`).classList.add('active');
   window.scrollTo({top:0, behavior:'smooth'});
 }
+
+// ---------- ambient music ----------
+const bgMusic = document.getElementById('bgMusic');
+const musicBtn = document.getElementById('musicToggle');
+let musicPlaying = false;
+
+bgMusic.volume = 0.35;
+
+musicBtn.addEventListener('click', ()=>{
+  if(musicPlaying){
+    bgMusic.pause();
+    musicBtn.classList.remove('playing');
+    musicBtn.classList.add('muted');
+  } else {
+    bgMusic.play().catch(()=>{});
+    musicBtn.classList.add('playing');
+    musicBtn.classList.remove('muted');
+  }
+  musicPlaying = !musicPlaying;
+});
 
 // ---------- init ----------
 renderTopicList();
