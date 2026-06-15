@@ -609,7 +609,7 @@
 
   /* ============ MUSIC TOGGLE ============ */
   .music-toggle{
-    position: fixed;
+    position: relative;
     top: 18px;
     right: 18px;
     z-index: 10;
@@ -661,7 +661,7 @@
   z-index: 9999;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-end;
   gap: 8px;
 }
 .volume-row{
@@ -672,6 +672,7 @@
   padding: 6px 10px;
   box-shadow: 0 4px 14px -4px rgba(217,120,159,0.4);
   border: 1.5px solid var(--pink-soft);
+  margin-top: 16px;
 }
 .volume-row.visible{
   display: flex;
@@ -730,7 +731,7 @@
 </div>
 
 <audio id="bgMusic" loop>
-  <source src="ambient.mp3" type="audio/mpeg">
+  <source src="music.ambient.mp3" type="audio/mpeg">
 </audio>
 
 <div class="app">
@@ -3247,7 +3248,7 @@ musicWrap.addEventListener('mouseenter', ()=>{
   volumeRow.classList.add('visible');
 });
 musicWrap.addEventListener('mouseleave', ()=>{
-  hideTimer = setTimeout(()=> volumeRow.classList.remove('visible'), 300);
+  hideTimer = setTimeout(()=> volumeRow.classList.remove('visible'), 100);
 });
 
 musicBtn.addEventListener('click', ()=>{
