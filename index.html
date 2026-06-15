@@ -731,7 +731,7 @@
 </div>
 
 <audio id="bgMusic" loop>
-  <source src="music.ambient.mp3" type="audio/mpeg">
+  <source src="music/ambient.mp3" type="audio/mpeg">
 </audio>
 
 <div class="app">
@@ -3242,13 +3242,14 @@ let musicPlaying = false;
 let hideTimer;
 
 bgMusic.volume = 0.35;
+musicBtn.classList.add('muted'); // start in muted state visually
 
 musicWrap.addEventListener('mouseenter', ()=>{
   clearTimeout(hideTimer);
   volumeRow.classList.add('visible');
 });
 musicWrap.addEventListener('mouseleave', ()=>{
-  hideTimer = setTimeout(()=> volumeRow.classList.remove('visible'), 100);
+  hideTimer = setTimeout(()=> volumeRow.classList.remove('visible'), 300);
 });
 
 musicBtn.addEventListener('click', ()=>{
